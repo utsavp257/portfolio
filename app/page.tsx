@@ -50,6 +50,7 @@ export default function Page() {
                   </h1>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines and playful, animated web experiences.
+                    Scroll to see more!
                   </p>
                   <div className="mt-6 flex gap-3">
                     <a href="#projects" className="px-5 py-2 rounded-xl bg-brand-red text-white shadow-soft font-glacial">See Projects</a>
@@ -92,41 +93,6 @@ export default function Page() {
               </div>
             </SectionWrapper>
 
-            {/* Skills */}
-            <SectionDivider title="Skills" gap={60} multiplier={0.8} id="skills" />
-            <SectionWrapper>
-              <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
-                <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
-                  <h4 className="font-glacial-bold">Languages</h4>
-                  <p className="text-sm mt-2">C++, Python, C, JavaScript, TypeScript, C#, SQL, Java</p>
-                </MDiv>
-                <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
-                  <h4 className="font-glacial-bold">Frameworks & Tools</h4>
-                  <p className="text-sm mt-2">Next.js, Express.js, React, Node, Tailwind, PyTorch, TensorFlow, MongoDB, Docker</p>
-                </MDiv>
-                <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
-                  <h4 className="font-glacial-bold">Things I'm good at</h4>
-                  <p className="text-sm mt-2">NLP, Fine-grained NER, Machine Learning, LLMs, DSA, Algorithms, GitHub, Database Management, Full Stack Development</p>
-                </MDiv>
-              </div>
-            </SectionWrapper>
-
-            {/* Experience */}
             <SectionDivider title="Experience" gap={60} multiplier={0.8} id="experience" />
             <SectionWrapper>
               <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
@@ -169,6 +135,43 @@ export default function Page() {
                 </MDiv>
               </div>
             </SectionWrapper>
+
+            {/* Skills */}
+            <SectionDivider title="Skills" gap={60} multiplier={0.8} id="skills" />
+            <SectionWrapper>
+              <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
+                <MDiv 
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">Languages</h4>
+                  <p className="text-sm mt-2">C++, Python, C, JavaScript, TypeScript, C#, SQL, Java</p>
+                </MDiv>
+                <MDiv 
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">Frameworks & Tools</h4>
+                  <p className="text-sm mt-2">Next.js, Express.js, React, Node, Tailwind, PyTorch, TensorFlow, MongoDB, Docker</p>
+                </MDiv>
+                <MDiv 
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">Things I'm good at</h4>
+                  <p className="text-sm mt-2">NLP, Fine-grained NER, Machine Learning, LLMs, DSA, Algorithms, GitHub, Database Management, Full Stack Development</p>
+                </MDiv>
+              </div>
+            </SectionWrapper>
+
+            {/* Experience */}
+            
 
             {/* Projects */}
             <SectionDivider title="Projects" gap={60} multiplier={0.8} id="projects" />
