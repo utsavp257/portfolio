@@ -50,7 +50,7 @@ export default function Page() {
                   </h1>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines and playful, animated web experiences.
-                    Scroll to see more!
+                    Scroll to see more! I'm sorry this is yet to be done for mobile devices :(
                   </p>
                   <div className="mt-6 flex gap-3">
                     <a href="#projects" className="px-5 py-2 rounded-xl bg-brand-red text-white shadow-soft font-glacial">See Projects</a>
