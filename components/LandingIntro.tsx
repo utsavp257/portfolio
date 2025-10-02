@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, MotionProps } from 'framer-motion';
 
 type Props = { onFinish: () => void };
@@ -12,7 +12,9 @@ type Props = { onFinish: () => void };
  * - Clicking middle-left -> onFinish() (enter portfolio).
  */
 export default function LandingIntro({ onFinish }: Props) {
-  const MDiv = motion.div as React.ComponentType<React.HTMLAttributes<HTMLDivElement> & MotionProps>;
+  const MDiv = motion.div as React.ForwardRefExoticComponent<
+    React.HTMLAttributes<HTMLDivElement> & MotionProps & React.RefAttributes<HTMLDivElement>
+  >;
   const LINES = ['Welcome', 'to my', 'portfolio'];
 
   // timing config
@@ -23,6 +25,9 @@ export default function LandingIntro({ onFinish }: Props) {
   const [showCTA, setShowCTA] = useState(false); // center CTA
   const [showTopRight, setShowTopRight] = useState(false); // top-right
   const [showMiddleLeft, setShowMiddleLeft] = useState(false); // middle-left
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const lineRefs = [useRef<HTMLSpanElement | null>(null), useRef<HTMLSpanElement | null>(null), useRef<HTMLSpanElement | null>(null)];
+  const baseFontSizesRef = useRef<number[] | null>(null);
 
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
@@ -44,6 +49,56 @@ export default function LandingIntro({ onFinish }: Props) {
       clearTimeout(fallback);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Ensure each line fits horizontally: measure and reduce font size if needed
+  useEffect(() => {
+    function fitLinesToWidth() {
+      if (!containerRef.current) return;
+      const available = Math.max(0, containerRef.current.clientWidth - 20); // account for container padding
+
+      // Always re-measure base font sizes on each run, because CSS uses viewport formulas
+      baseFontSizesRef.current = lineRefs.map((ref) => {
+        const el = ref.current;
+        if (!el) return 0;
+        // Clear any inline override to get the CSS-calculated size for current viewport
+        el.style.fontSize = '';
+        const cs = window.getComputedStyle(el);
+        const size = parseFloat(cs.fontSize || '0');
+        return isFinite(size) && size > 0 ? size : 0;
+      });
+
+      lineRefs.forEach((ref, idx) => {
+        const el = ref.current;
+        if (!el) return;
+        const baseSize = baseFontSizesRef.current?.[idx] ?? 0;
+        // Measure width at base size
+        const fullWidth = el.scrollWidth;
+        if (available > 0 && fullWidth > 0 && baseSize > 0) {
+          const ratio = available / fullWidth;
+          const newSize = ratio < 1 ? baseSize * ratio : baseSize;
+          el.style.fontSize = newSize + 'px';
+        }
+      });
+    }
+
+    // Run after layout
+    const raf = requestAnimationFrame(fitLinesToWidth);
+    window.addEventListener('resize', fitLinesToWidth);
+    window.addEventListener('orientationchange', fitLinesToWidth);
+
+    // Observe container size changes precisely (e.g., due to UI chrome)
+    let ro: ResizeObserver | null = null;
+    if ('ResizeObserver' in window && containerRef.current) {
+      ro = new ResizeObserver(() => fitLinesToWidth());
+      ro.observe(containerRef.current);
+    }
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', fitLinesToWidth);
+      window.removeEventListener('orientationchange', fitLinesToWidth);
+      if (ro && containerRef.current) ro.disconnect();
+    };
   }, []);
 
   // handlers
@@ -108,8 +163,8 @@ export default function LandingIntro({ onFinish }: Props) {
       </svg>
 
        {/* Text block — single-group fade */}
-       <MDiv
-        className="landing-words pointer-events-auto"
+      <MDiv
+       className="landing-words pointer-events-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: fadeDelay, duration: prefersReducedMotion ? 0.01 : fadeDuration, ease: [0.22, 0.9, 0.3, 1] }}
@@ -117,10 +172,15 @@ export default function LandingIntro({ onFinish }: Props) {
           // no-op; CTA handled by timer to appear earlier
         }}
          onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+         ref={containerRef}
       >
         <div className="line line-1" style={{ height: '33.333%' }}>
           <div>
-            <span className="landing-line-text" style={{ filter: 'url(#landingBrushRough)' }}>
+            <span
+              ref={lineRefs[0]}
+              className="landing-line-text"
+              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+            >
               {LINES[0]}
             </span>
           </div>
@@ -128,7 +188,11 @@ export default function LandingIntro({ onFinish }: Props) {
 
         <div className="line line-2" style={{ height: '33.333%' }}>
           <div>
-            <span className="landing-line-text" style={{ filter: 'url(#landingBrushRough)' }}>
+            <span
+              ref={lineRefs[1]}
+              className="landing-line-text"
+              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+            >
               {LINES[1]}
             </span>
           </div>
@@ -136,7 +200,11 @@ export default function LandingIntro({ onFinish }: Props) {
 
         <div className="line line-3" style={{ height: '33.333%' }}>
           <div>
-            <span className="landing-line-text" style={{ filter: 'url(#landingBrushRough)' }}>
+            <span
+              ref={lineRefs[2]}
+              className="landing-line-text"
+              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+            >
               {LINES[2]}
             </span>
           </div>

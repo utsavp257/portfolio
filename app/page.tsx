@@ -50,7 +50,7 @@ export default function Page() {
                   </h1>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines and playful, animated web experiences.
-                    Scroll to see more! I'm sorry this is yet to be done for mobile devices :(
+                    Scroll to see more! (This site works best for desktop screens)
                   </p>
                   <div className="mt-6 flex gap-3">
                     <a href="#projects" className="px-5 py-2 rounded-xl bg-brand-red text-white shadow-soft font-glacial">See Projects</a>
@@ -118,7 +118,8 @@ export default function Page() {
                   <h3 className="font-glacial-bold">Software Developer Intern — Stealth Startup</h3>
                   <p className="text-sm text-black/70 mt-2">Jan 2025 – Mar 2025</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
-                    <li>Helped build a part of the web app in Next.js that streamlines various conversation platforms with AI</li>
+                    <li>Contributed to the design and development of an agent-based platform in Next.js that streamlines various endpoints for customers.</li>
+                    <li> Integrated multiple external APIs to enhance platform functionality.</li>
                   </ul>
                 </MDiv>
                 <MDiv 
@@ -156,7 +157,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Frameworks & Tools</h4>
-                  <p className="text-sm mt-2">Next.js, Express.js, React, Node, Tailwind, PyTorch, TensorFlow, MongoDB, Docker</p>
+                  <p className="text-sm mt-2">Next.js, Express.js, React, Node, Tailwind CSS, Prisma, Django, PyTorch, TensorFlow, MongoDB, Docker</p>
                 </MDiv>
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
