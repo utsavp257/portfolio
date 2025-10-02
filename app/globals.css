@@ -1,0 +1,341 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------- Font definitions ---------------- */
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: url('/fonts/GlacialIndifference-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Glacial Indifference';
+  src: url('/fonts/GlacialIndifference-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---------------- Root tokens ---------------- */
+:root {
+  --bg: #ffffff;
+  --dot: rgba(0,0,0,0.28);
+  --brand-red: #ba0a00; /* requested color */
+  --brand-dark: #0b0b0b;
+  --intro-font: 'Bebas Neue', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --main-font: 'Glacial Indifference', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* ---------- Page baseline ---------- */
+html, body { height: 100%; }
+body { 
+  background: var(--bg);
+  font-family: var(--main-font);
+  font-weight: 400;
+}
+
+/* ---------- Polka-dot wallpaper (shared across pages) ---------- */
+.polka {
+  position: relative;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+  background-size: 18px 18px;
+  background-position: 0 0;
+  z-index: 0;
+}
+
+/* ---------- Hide older stripe visuals while landing overlay is present ---------- */
+.landing-intro .intro-stripe-wrap,
+.landing-intro .stripe,
+.landing-intro .stripe-left,
+.landing-intro .stripe-right,
+.landing-intro .hero-stripes {
+  display: none !important;
+}
+
+/* ---------- Card & stripe visuals (preserved) ---------- */
+.card-wrap { position: relative; overflow: visible; }
+.card-stripe {
+  position: absolute; inset: -3px; border-radius: 1rem; pointer-events: none;
+  background-image: repeating-linear-gradient(90deg, transparent 0 10px, rgba(255,45,45,0.85) 10px 30px, rgba(0,0,0,0.85) 30px 50px);
+  background-size: 200% 100%;
+  transition: transform 450ms cubic-bezier(.2,.8,.2,1), opacity 300ms ease;
+  opacity: 0; transform: scale(0.9);
+}
+.card-wrap:hover .card-stripe { opacity: 1; transform: scale(1); animation: moveStripes 1.8s linear infinite; }
+@keyframes moveStripes { 0% { background-position: 0% 0%; } 100% { background-position: 200% 0%; } }
+.blurred { filter: blur(6px) saturate(0.9); transform: scale(1.01); }
+
+/* ---------- Modal styles (kept) ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 1000;
+  display:flex; align-items:center; justify-content:center; padding:1rem;
+}
+.modal-card {
+  background:white; border-radius:2rem; padding:3rem; max-width:900px; width:100%; max-height:90vh; overflow-y:auto;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.4); border:1px solid rgba(0,0,0,0.1);
+}
+.modal-card::-webkit-scrollbar{width:6px;}
+.modal-card::-webkit-scrollbar-track{background:#f1f1f1;border-radius:3px;}
+.modal-card::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:3px;}
+.modal-card::-webkit-scrollbar-thumb:hover{background:#a8a8a8;}
+
+/* ---------- Landing Intro: layout + brushy texture fallback ---------- */
+/* import bold display font */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+.landing-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: transparent; /* body .polka shows through */
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* interior area leaves 10px padding on all sides */
+.landing-words {
+  width: calc(100% - 20px);
+  height: calc(100vh - 20px);
+  padding: 10px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* equal thirds */
+.line { width: 100%; height: calc(100% / 3); display:flex; align-items:center; justify-content:center; overflow:visible; }
+.line > div { white-space: nowrap; display:inline-block; text-align:center; }
+
+/* ---------- Text styling for fade-in group ---------- */
+
+/* the visible text elements (three lines). Use a thicker visual weight. */
+.landing-line-text {
+  font-family: var(--intro-font);
+  font-weight: 900; /* bolder */
+  color: var(--brand-red);
+  display: inline-block;
+  line-height: 0.86;
+  letter-spacing: -0.01em;
+  /* thicker feel: add a subtle multi-offset shadow to give weight */
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.04),
+    0 2px 0 rgba(0,0,0,0.03);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* a tiny stroke to deepen edges (subtle) */
+  -webkit-text-stroke: 0.8px rgba(0,0,0,0.06);
+  /* slightly raise contrast inside glyphs */
+  mix-blend-mode: normal;
+  padding: 0 6px;
+  /* responsive size via the same formulas you used earlier (keeps layout consistent) */
+  font-size: min(
+    calc(((100vh - 20px) / 3) * 0.92),
+    calc((100vw - 20px) / (7 * 0.56))
+  );
+}
+
+/* middle line slightly smaller */
+.line-2 .landing-line-text {
+  font-size: min(
+    calc(((100vh - 20px) / 3) * 0.80),
+    calc((100vw - 20px) / (5 * 0.56))
+  );
+}
+
+/* smaller screens */
+@media (max-width: 540px) {
+  .landing-line-text { font-size: clamp(22px, 7.5vh, 64px); }
+  .line-2 .landing-line-text { font-size: clamp(18px, 6.2vh, 52px); }
+}
+
+/* ---------- Grain & texture overlay (MADE MORE PROMINENT) ---------- */
+/* this layer covers whole intro and multiplies with the content — raised opacity for stronger texture */
+.landing-intro .grain-layer {
+  position:absolute; inset:0; z-index:5; pointer-events:none; opacity:0.12; /* increased from 0.04 -> 0.12 */
+  background-image: url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'>\
+      <filter id='g2'><feTurbulence baseFrequency='0.95' numOctaves='2' stitchTiles='stitch'/></filter>\
+      <rect width='100%' height='100%' filter='url(#g2)' fill='white'/></svg>");
+  background-repeat: repeat; background-size: 360px 360px; mix-blend-mode: multiply;
+}
+
+/* also create an inner-grain on the letters for a painted look using pseudo-element on the text */
+.landing-words .line > div { position: relative; display: inline-block; }
+.landing-words .line > div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  mix-blend-mode: multiply;
+  opacity: 0.22; /* noticeable grain inside letters (increase if you want even stronger) */
+  background-image: url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'>\
+      <filter id='g3'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter>\
+      <rect width='100%' height='100%' filter='url(#g3)' fill='white'/></svg>");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+  pointer-events: none;
+}
+
+/* reduce motion fallback */
+@media (prefers-reduced-motion: reduce) {
+  .landing-intro .grain-layer { opacity: 0.06 !important; }
+  .landing-line-text { transition: none !important; }
+}
+
+/* small screens: slightly reduce effect intensity */
+@media (max-width: 540px) {
+  .landing-words .line > div::after { opacity: 0.16; background-size: 100px 100px; }
+  .landing-intro .grain-layer { opacity: 0.08; }
+}
+
+/* ---------- Utilities & small helpers kept ---------- */
+.shadow-soft { box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+.text-brand-black { color: var(--brand-dark); }
+.text-brand-red { color: var(--brand-red); }
+.bg-brand-red { background-color: var(--brand-red); }
+.perspective { perspective: 1000px; }
+.flip-front, .flip-back { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.flip-back { transform: rotateY(180deg); }
+.rounded-2xl { border-radius: 1rem; }
+
+/* quick landing size override */
+.landing-intro { --landing-scale: 1.2; }
+
+.line-1 .landing-line-text,
+.line-3 .landing-line-text {
+  font-size: min(
+    calc(((100vh - 20px) / 3) * 0.92 * var(--landing-scale)),
+    calc((100vw - 20px) / (7 * 0.56) * var(--landing-scale))
+  ) !important;
+}
+
+.line-2 .landing-line-text {
+  font-size: min(
+    calc(((100vh - 20px) / 3) * 0.80 * var(--landing-scale)),
+    calc((100vw - 20px) / (5 * 0.56) * var(--landing-scale))
+  ) !important;
+}
+
+/* --- Button / interactive styles for the new flow --- */
+
+/* Brand button base: same color as font (brand-red) */
+.brand-btn {
+  --btn-radius: 999px;
+  border-radius: var(--btn-radius);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: transform 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
+}
+
+/* Center CTA (already inline-styled) — ensure focus visual */
+.brand-btn:focus {
+  box-shadow: 0 6px 20px rgba(186, 10, 0, 0.18), 0 0 0 4px rgba(186,10,0,0.08);
+  transform: translateY(-2px) scale(1.01);
+}
+
+/* top-right button smaller pill */
+.top-right-btn {
+  border-radius: 999px;
+}
+
+/* middle-left button slightly rounded rectangle */
+.middle-left-btn {
+  border-radius: 12px;
+}
+
+/* small hover behaviour for pointer users */
+@media (hover: hover) {
+  .brand-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.16);
+  }
+}
+
+/* Hidden utility class (we used inline style toggles; keep this for fallback) */
+.hidden { opacity: 0; pointer-events: none; transform: translateY(6px) scale(0.98); }
+
+/* Make grain visible above background but below interactive buttons */
+.grain-layer { z-index: 5; }
+
+/* Ensure top-right & middle-left are visually accessible on small screens */
+@media (max-width: 640px) {
+  .top-right-btn { right: 12px; top: 12px; padding: 0.45rem 0.9rem; font-size: 0.9rem; }
+  .middle-left-btn { left: 10px; padding: 0.6rem 0.9rem; font-size: 0.95rem; }
+}
+
+.section-divider {
+  position: relative;
+  width: 100%;
+  border-top: 6px solid var(--brand-red);
+  border-bottom: 6px solid var(--brand-red);
+  user-select: none;
+  scrollbar-width: none; /* hide scrollbar firefox */
+}
+.section-divider::-webkit-scrollbar {
+  display: none; /* hide scrollbar chrome/safari */
+}
+
+/* Rough grainy overlay for divider text */
+.section-divider div {
+  position: relative;
+}
+.section-divider div::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.2;
+  background-image: url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
+      <filter id='g'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter>\
+      <rect width='100%' height='100%' filter='url(#g)' fill='white'/></svg>");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+/* make the background blur + non-interactive when modal is open */
+.blurred {
+  filter: blur(6px) saturate(0.98);
+  pointer-events: none; /* prevent clicks on background */
+  user-select: none;
+  transition: filter 0.18s ease;
+}
+
+/* ensure backface is hidden on flip sides if you add more detailed flip styles */
+.flip-front, .flip-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* utility for the card -> modal transform being smooth */
+.motion-layout {
+  will-change: transform;
+}
+
+/* ---------------- Font utility classes ---------------- */
+.font-glacial {
+  font-family: var(--main-font);
+}
+
+.font-glacial-bold {
+  font-family: var(--main-font);
+  font-weight: 700;
+}
