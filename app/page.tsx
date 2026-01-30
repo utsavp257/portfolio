@@ -148,7 +148,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Languages</h4>
-                  <p className="text-sm mt-2">C++, Python, C, JavaScript, TypeScript, C#, SQL, Java</p>
+                  <p className="text-sm mt-2">C++, Python, C, Rust, Dart, JavaScript, TypeScript, C#, SQL, Java</p>
                 </MDiv>
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
@@ -157,7 +157,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Frameworks & Tools</h4>
-                  <p className="text-sm mt-2">Next.js, Express.js, React, Node, Tailwind CSS, Prisma, Django, PyTorch, TensorFlow, MongoDB, Docker</p>
+                  <p className="text-sm mt-2">Next.js, Express.js, React, Node.js, Tailwind CSS, Prisma, Flutter, Flask, .NET, Django, FastAPI, PyTorch, TensorFlow, MongoDB, Tableau, Docker</p>
                 </MDiv>
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
@@ -166,7 +166,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Things I'm good at</h4>
-                  <p className="text-sm mt-2">NLP, Fine-grained NER, Machine Learning, LLMs, DSA, Algorithms, GitHub, Database Management, Full Stack Development</p>
+                  <p className="text-sm mt-2">NLP, Fine-grained NER, Data Analytics, Machine Learning, LLMs, DSA, Algorithms, GitHub, Database Management, Full Stack Development</p>
                 </MDiv>
               </div>
             </SectionWrapper>
