@@ -36,7 +36,7 @@ export const projects = [
     title: 'User Authentication System',
     short: 'Secure authentication with signup, login, recovery, and admin controls.',
     description: 'Designed and implemented a user authentication system featuring signup, login, password recovery, email verification, and admin controls using MongoDB, ExpressJS, React and NodeJS. The system ensures secure user management and data integrity with features like encrypted password storage, token-based email verification, and admin oversight for user accounts',
-    tags: ['Authentication', 'MERN Stack', 'Security', 'User Management', 'Encryption'],
+    tags: ['Authentication', 'MongoDB', 'MERN Stack', 'Security', 'User Management', 'Encryption'],
     href: 'https://github.com/utsavp257/User_Auth'
     },
     {
