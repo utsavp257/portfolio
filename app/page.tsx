@@ -86,9 +86,9 @@ export default function Page() {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h3 className="font-glacial-bold">Master of Science, Data Science - Fordham University</h3>
+                  <h3 className="font-glacial-bold">Master of Science, Data Science and Quant Economics - Fordham University</h3>
                   <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: 4</p>
-                  <p className="mt-3 text-black/80">Relevant coursework: Data Mining</p>
+                  <p className="mt-3 text-black/80">Relevant coursework: Data Mining, Financial Econometrics, Microeconomics</p>
                 </MDiv>
               </div>
             </SectionWrapper>
