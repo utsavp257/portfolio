@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface SectionDividerProps {
   title: string;
@@ -17,71 +17,86 @@ export default function SectionDivider({
   id,
 }: SectionDividerProps) {
   const textRef = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState(0);
-  const targetOffset = useRef(0);
-  const [textWidth, setTextWidth] = useState(0);
+
+  // Animation state kept in refs so we never trigger React re-renders.
+  const offset = useRef(0);
+  const target = useRef(0);
+  const textWidth = useRef(0);
+  const rafId = useRef<number | null>(null);
 
   useEffect(() => {
-    if (textRef.current) {
-      setTextWidth(textRef.current.scrollWidth / 2); // one copy length
-    }
-  }, []);
+    const textEl = textRef.current;
+    if (!textEl) return;
 
-  // Track scroll delta
-  useEffect(() => {
+    // one copy length (we render two copies for a seamless loop)
+    textWidth.current = textEl.scrollWidth / 2;
+
     let lastScrollTop = window.scrollY;
+
+    // Writes the transform directly to the DOM — no setState, no re-render.
+    const applyTransform = () => {
+      let next = offset.current;
+      if (textWidth.current > 0) {
+        next = ((next % textWidth.current) + textWidth.current) % textWidth.current;
+      }
+      textEl.style.transform = `translate3d(-${next}px, -50%, 0)`;
+    };
+
+    const tick = () => {
+      const diff = target.current - offset.current;
+      offset.current += diff * easing;
+      applyTransform();
+
+      // Stop the loop once we've essentially caught up; it restarts on scroll.
+      if (Math.abs(target.current - offset.current) < 0.1) {
+        offset.current = target.current;
+        applyTransform();
+        rafId.current = null;
+        return;
+      }
+      rafId.current = requestAnimationFrame(tick);
+    };
+
+    const ensureRunning = () => {
+      if (rafId.current == null) rafId.current = requestAnimationFrame(tick);
+    };
 
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const delta = scrollTop - lastScrollTop;
       lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-
-      targetOffset.current += delta * multiplier;
+      target.current += delta * multiplier;
+      ensureRunning();
     };
 
+    const handleResize = () => {
+      textWidth.current = textEl.scrollWidth / 2;
+      applyTransform();
+    };
+
+    applyTransform();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [multiplier]);
+    window.addEventListener("resize", handleResize);
 
-  // Smooth animation loop (catches up to targetOffset)
-  useEffect(() => {
-    let animationFrame: number;
-
-    const animate = () => {
-      setOffset((prev) => {
-        let next = prev + (targetOffset.current - prev) * easing; // ease toward target
-        if (textWidth > 0) {
-          next = ((next % textWidth) + textWidth) % textWidth;
-        }
-        return next;
-      });
-      animationFrame = requestAnimationFrame(animate);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+      if (rafId.current != null) cancelAnimationFrame(rafId.current);
+      rafId.current = null;
     };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [textWidth, easing]);
+  }, [multiplier, easing]);
 
   return (
     <div
       id={id}
-      className="relative w-full h-24 overflow-hidden"
-      style={{
-        backgroundColor: "#b91c1c",
-        backgroundImage: `radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px)`,
-        backgroundSize: "20px 20px",
-        filter: "url(#landingGrain)",
-      }}
+      className="section-divider relative w-full h-24 overflow-hidden"
+      style={{ backgroundColor: "#b91c1c" }}
     >
-      {/* Infinite scrolling text */}
+      {/* Infinite scrolling text — transformed via ref, no React re-render */}
       <div
         ref={textRef}
-        className="absolute top-1/2 left-0 flex whitespace-nowrap text-5xl font-extrabold uppercase tracking-wider"
-        style={{
-          transform: `translateX(-${offset}px) translateY(-50%)`,
-          filter: "url(#landingBrushRough)",
-          color: "white",
-        }}
+        className="divider-text absolute top-1/2 left-0 flex whitespace-nowrap text-5xl font-extrabold uppercase tracking-wider will-change-transform"
+        style={{ transform: "translate3d(0, -50%, 0)", color: "#c4c4c4" }}
       >
         {/* Two copies for seamless looping */}
         <span className="flex">
@@ -100,26 +115,15 @@ export default function SectionDivider({
         </span>
       </div>
 
-      {/* Filters kept intact */}
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden focusable="false">
+      {/* Film grain (light + dark specks) — static overlays, rasterized once (cheap on mobile) */}
+      <div className="divider-grain" aria-hidden />
+      <div className="divider-speckle" aria-hidden />
+      {/* Distressed brushy edge filter — applied to the text on desktop only (see globals.css) */}
+      <svg width="0" height="0" aria-hidden focusable="false" style={{ position: "absolute" }}>
         <defs>
-          <filter id="landingBrushRough" x="-40%" y="-40%" width="180%" height="180%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.58" numOctaves="2" stitchTiles="stitch" result="t1" />
-            <feGaussianBlur in="t1" stdDeviation="0.66" result="t1b" />
-            <feDisplacementMap in="SourceGraphic" in2="t1b" scale="5" xChannelSelector="R" yChannelSelector="G" result="d1" />
-            <feTurbulence type="fractalNoise" baseFrequency="0.45" numOctaves="2" stitchTiles="stitch" result="t2" />
-            <feGaussianBlur in="t2" stdDeviation="0.9" result="t2b" />
-            <feDisplacementMap in="d1" in2="t2b" scale="3" xChannelSelector="R" yChannelSelector="G" result="d2" />
-            <feGaussianBlur in="d2" stdDeviation="0.4" />
-          </filter>
-
-          <filter id="landingGrain" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" stitchTiles="stitch" result="g" />
-            <feColorMatrix in="g" type="saturate" values="0" result="g2" />
-            <feComponentTransfer>
-              <feFuncA type="linear" slope="0.15" />
-            </feComponentTransfer>
-            <feBlend in="g2" in2="SourceGraphic" mode="multiply" />
+          <filter id="dividerBrush" x="-15%" y="-15%" width="130%" height="130%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="7" result="t" />
+            <feDisplacementMap in="SourceGraphic" in2="t" scale="3.2" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
       </svg>

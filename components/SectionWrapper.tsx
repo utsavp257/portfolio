@@ -8,12 +8,20 @@ export default function SectionWrapper({ id, children }: { id?: string; children
   useEffect(() => {
     function updateHeight() {
       if (!ref.current) return;
+
+      // On phones, don't force tall multiples of the viewport — that creates huge
+      // empty scroll zones with tiny centered content. Let the section be content-sized.
+      if (window.innerWidth < 768) {
+        setMinHeight("auto");
+        return;
+      }
+
       const contentHeight = ref.current.scrollHeight;
       const screenHeight = window.innerHeight;
-      
+
       // how many screen-length multiples are needed
       const multiples = Math.ceil(contentHeight / screenHeight);
-      setMinHeight(`${(multiples * 100)-12.5}vh`);
+      setMinHeight(`${(multiples * 100) - 12.5}vh`);
     }
 
     updateHeight();
@@ -25,7 +33,7 @@ export default function SectionWrapper({ id, children }: { id?: string; children
     <section
       id={id}
       ref={ref}
-      className="w-full flex items-center justify-center"
+      className="w-full flex items-center justify-center py-16 md:py-0"
       style={{ minHeight }}
     >
       <div className="max-w-6xl w-full px-6">{children}</div>

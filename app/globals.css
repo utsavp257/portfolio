@@ -287,23 +287,43 @@ body {
   display: none; /* hide scrollbar chrome/safari */
 }
 
-/* Rough grainy overlay for divider text */
-.section-divider div {
-  position: relative;
-}
-.section-divider div::after {
-  content: "";
+/* Film grain for the red dividers. Two STATIC overlays (rasterized once → cheap on mobile),
+   restoring the original papery texture and keeping the red vivid:
+   - .divider-grain  : grayscale noise via `overlay` → light + dark specks, brightness-neutral
+   - .divider-speckle: grayscale noise via `multiply` → dark specks so the white text reads grainy too */
+.divider-grain,
+.divider-speckle {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  mix-blend-mode: multiply;
-  opacity: 0.2;
-  background-image: url("data:image/svg+xml;utf8,\
-    <svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>\
-      <filter id='g'><feTurbulence baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter>\
-      <rect width='100%' height='100%' filter='url(#g)' fill='white'/></svg>");
   background-repeat: repeat;
-  background-size: 180px 180px;
+  background-image: url("data:image/svg+xml;utf8,\
+    <svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'>\
+      <filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/>\
+      <feColorMatrix type='saturate' values='0'/></filter>\
+      <rect width='100%' height='100%' filter='url(#n)'/></svg>");
+}
+.divider-grain {
+  z-index: 3;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  background-size: 120px 120px;
+}
+.divider-speckle {
+  z-index: 4;
+  mix-blend-mode: multiply;
+  opacity: 0.3;
+  background-size: 150px 150px;
+  background-position: 37px 11px; /* offset so it doesn't align with the overlay layer */
+}
+
+/* Distressed brushy edges on the divider text — desktop only.
+   The text is transform-animated on scroll; SVG filters are costly to re-raster while moving,
+   so we skip this on phones (where the mobile-perf work matters most). */
+@media (min-width: 768px) and (hover: hover) {
+  .divider-text {
+    filter: url(#dividerBrush);
+  }
 }
 
 /* make the background blur + non-interactive when modal is open */

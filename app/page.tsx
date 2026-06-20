@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
-import { useState } from 'react';
-import ThreeHero from '../components/ThreeHero';
+import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import ProjectCard from '../components/ProjectCard';
 import ProjectModal from '../components/ProjectModal';
 import { projects } from '../data/projects';
@@ -10,6 +10,13 @@ import LandingIntro from '../components/LandingIntro';
 import SectionDivider from '../components/SectionDivider';
 import SectionWrapper from "../components/SectionWrapper";
 
+// Keep three.js out of the initial bundle / SSR pass — it loads only on the client
+// when the hero is rendered.
+const SynthPad = dynamic(() => import('../components/SynthPad'), {
+  ssr: false,
+  loading: () => <div className="w-full h-[60vh] rounded-2xl bg-black/5" />,
+});
+
 export default function Page() {
   const [active, setActive] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -17,6 +24,24 @@ export default function Page() {
   const MDiv = motion.div as React.ComponentType<
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
+
+  // Notify on a visit, once per browser session (avoids re-pinging on every
+  // re-render or client navigation within the same tab).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (sessionStorage.getItem('visit-tracked')) return;
+      sessionStorage.setItem('visit-tracked', '1');
+    } catch {
+      // sessionStorage may be unavailable (private mode); still ping once.
+    }
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: window.location.pathname }),
+      keepalive: true,
+    }).catch(() => {});
+  }, []);
 
   function handleOpen(p: any) {
     setActive(p);
@@ -50,15 +75,22 @@ export default function Page() {
                   </h1>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines and playful, animated web experiences.
-                    Scroll to see more! (This site works best for desktop screens).
-                    If you're really impatient feel free to use the below buttons to jump down.
+                    Tap the dot grid and move around to play it — it&apos;s a little synth (left/right changes the note, near/far changes the tone).
+                    Keep scrolling to see more.
                   </p>
-                  <div className="mt-6 flex gap-3">
-                    <a href="#projects" className="px-5 py-2 rounded-xl bg-brand-red text-white shadow-soft font-glacial">See Projects</a>
-                    <a href="#contact" className="px-5 py-2 rounded-xl border border-brand-red text-brand-red font-glacial">Contact</a>
+                  <div className="mt-8 flex items-center gap-3 text-black/60 font-glacial">
+                    <MDiv
+                      animate={{ y: [0, 8, 0] }}
+                      transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                      aria-hidden
+                      className="text-brand-red text-2xl leading-none"
+                    >
+                      ↓
+                    </MDiv>
+                    <span className="text-sm tracking-wide uppercase">Scroll to explore</span>
                   </div>
                 </div>
-                <ThreeHero />
+                <SynthPad />
               </div>
             </div>
           </header>
@@ -69,7 +101,7 @@ export default function Page() {
             {/* Education */}
             <SectionDivider title="Education" gap={60} multiplier={0.8} id="education" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
+              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
@@ -96,7 +128,7 @@ export default function Page() {
 
             <SectionDivider title="Experience" gap={60} multiplier={0.8} id="experience" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
+              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
@@ -141,7 +173,7 @@ export default function Page() {
             {/* Skills */}
             <SectionDivider title="Skills" gap={60} multiplier={0.8} id="skills" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center min-h-screen space-y-12">
+              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}

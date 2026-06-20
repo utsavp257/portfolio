@@ -25,6 +25,9 @@ export default function LandingIntro({ onFinish }: Props) {
   const [showCTA, setShowCTA] = useState(false); // center CTA
   const [showTopRight, setShowTopRight] = useState(false); // top-right
   const [showMiddleLeft, setShowMiddleLeft] = useState(false); // middle-left
+  // Once the primary CTA is clicked we must never re-show it, even if a
+  // pending appearance timer fires afterwards.
+  const ctaDismissedRef = useRef(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const lineRefs = [useRef<HTMLSpanElement | null>(null), useRef<HTMLSpanElement | null>(null), useRef<HTMLSpanElement | null>(null)];
   const baseFontSizesRef = useRef<number[] | null>(null);
@@ -41,9 +44,12 @@ export default function LandingIntro({ onFinish }: Props) {
       return;
     }
     const earlyMs = Math.max(0, (fadeDelay + CTA_APPEAR_AFTER_FADE_START) * 1000);
-    const t = window.setTimeout(() => setShowCTA(true), earlyMs);
-    // fallback to ensure CTA visible after entire fade
-    const fallback = window.setTimeout(() => setShowCTA(true), Math.round((fadeDelay + fadeDuration + 0.05) * 1000));
+    const showIfNotDismissed = () => {
+      if (!ctaDismissedRef.current) setShowCTA(true);
+    };
+    const t = window.setTimeout(showIfNotDismissed, earlyMs);
+    // fallback to ensure CTA visible after entire fade (but not if already dismissed)
+    const fallback = window.setTimeout(showIfNotDismissed, Math.round((fadeDelay + fadeDuration + 0.05) * 1000));
     return () => {
       clearTimeout(t);
       clearTimeout(fallback);
@@ -108,7 +114,8 @@ export default function LandingIntro({ onFinish }: Props) {
 
   function handlePrimaryClick(e: React.MouseEvent) {
     e.stopPropagation();
-    // reveal top-right and hide primary
+    // reveal top-right and hide primary (and keep it hidden against pending timers)
+    ctaDismissedRef.current = true;
     setShowTopRight(true);
     setShowCTA(false);
   }
@@ -179,7 +186,7 @@ export default function LandingIntro({ onFinish }: Props) {
             <span
               ref={lineRefs[0]}
               className="landing-line-text"
-              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+              style={{ display: 'inline-block', maxWidth: '100%' }}
             >
               {LINES[0]}
             </span>
@@ -191,7 +198,7 @@ export default function LandingIntro({ onFinish }: Props) {
             <span
               ref={lineRefs[1]}
               className="landing-line-text"
-              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+              style={{ display: 'inline-block', maxWidth: '100%' }}
             >
               {LINES[1]}
             </span>
@@ -203,7 +210,7 @@ export default function LandingIntro({ onFinish }: Props) {
             <span
               ref={lineRefs[2]}
               className="landing-line-text"
-              style={{ filter: 'url(#landingBrushRough)', display: 'inline-block', maxWidth: '100%' }}
+              style={{ display: 'inline-block', maxWidth: '100%' }}
             >
               {LINES[2]}
             </span>
