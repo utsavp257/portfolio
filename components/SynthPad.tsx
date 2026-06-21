@@ -28,6 +28,14 @@ const BASE_FREQ = 130.81; // C3
 const GRAY = new THREE.Color('#8a8a8a');
 const RED = new THREE.Color('#ba0a00');
 
+// iOS routes WebAudio through the ringer channel, so the hardware silent switch
+// mutes it. Detect iOS so we can re-route output through an <audio> media element
+// (the media channel ignores the silent switch).
+const IS_IOS =
+  typeof navigator !== 'undefined' &&
+  (/iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
 const worldX = (cx: number) => (cx / (GRID - 1) - 0.5) * EXTENT;
 const worldZ = (cz: number) => (cz / (GRID - 1) - 0.5) * EXTENT;
 
@@ -47,6 +55,7 @@ type Audio = {
   voice: GainNode;
   analyser: AnalyserNode;
   data: Uint8Array;
+  mediaEl: HTMLAudioElement | null; // iOS-only: output sink that bypasses the silent switch
 };
 
 // short synthesized impulse response (decaying noise) for a smooth convolution reverb
@@ -116,14 +125,27 @@ function createAudio(): Audio {
   voice.connect(convolver);
   convolver.connect(wet);
   wet.connect(comp); // wet (reverb)
-  comp.connect(ctx.destination);
   comp.connect(analyser);
+
+  // On iOS, send audio through a media element so it plays on the media channel
+  // (immune to the ringer/silent switch). Elsewhere, the normal output is fine.
+  let mediaEl: HTMLAudioElement | null = null;
+  if (IS_IOS && typeof ctx.createMediaStreamDestination === 'function') {
+    const dest = ctx.createMediaStreamDestination();
+    comp.connect(dest);
+    mediaEl = new Audio();
+    mediaEl.srcObject = dest.stream;
+    mediaEl.setAttribute('playsinline', '');
+    mediaEl.play().catch(() => {});
+  } else {
+    comp.connect(ctx.destination);
+  }
 
   osc1.start();
   osc2.start();
   sub.start();
   lfo.start();
-  return { ctx, osc1, osc2, sub, filter, voice, analyser, data };
+  return { ctx, osc1, osc2, sub, filter, voice, analyser, data, mediaEl };
 }
 
 function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
@@ -173,7 +195,11 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
       }
     }
     const a = audioRef.current;
-    if (a && a.ctx.state === 'suspended') a.ctx.resume();
+    if (a) {
+      if (a.ctx.state === 'suspended') a.ctx.resume().catch(() => {});
+      // iOS may block the very first play() until a gesture — retry inside one.
+      if (a.mediaEl && a.mediaEl.paused) a.mediaEl.play().catch(() => {});
+    }
   };
 
   useEffect(() => {
@@ -233,6 +259,10 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
         try {
           a.osc1.stop();
           a.osc2.stop();
+          if (a.mediaEl) {
+            a.mediaEl.pause();
+            a.mediaEl.srcObject = null;
+          }
           a.ctx.close();
         } catch {
           /* already closed */
