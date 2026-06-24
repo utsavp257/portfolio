@@ -1,6 +1,7 @@
 'use client';
 
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 
@@ -17,16 +18,42 @@ import * as THREE from 'three';
  * Audio chain inspired by standard subtractive-synth patches; original code.
  */
 
-const GRID = 24;
-const EXTENT = 10;
+const GRID = 64; // dots per side
+const EXTENT = 16; // world size of the dot field — larger than the frame so it fills the box
 const COUNT = GRID * GRID;
-const DOT_R = 0.06;
+const DOT_R = 0.035; // dot radius (spacing stays ~constant since GRID scales with EXTENT)
 const PITCH_STEPS = 16; // pitch resolution, independent of grid density
-const PENTA = [0, 2, 4, 7, 9]; // major pentatonic
-const BASE_FREQ = 130.81; // C3
+const PENTA = [0, 3, 5, 7, 10]; // D MINOR pentatonic (D F G A C) — the "always-right" subset of the song's scale
+const BASE_FREQ = 146.83; // D3 — "Highest in the Room" is in D natural minor (C = 130.81, C# = 138.59)
 
-const GRAY = new THREE.Color('#8a8a8a');
-const RED = new THREE.Color('#ba0a00');
+// ── SOUND KNOBS — tweak these, save, refresh the page to hear it ─────────────
+// Tuned toward a "Mike Dean" vibe: D minor, detuned saws gliding between notes,
+// soft-clip saturation, drenched in reverb + delay. Every value is safe to change alone.
+const SATURATION = 2.2; // analog grit / soft-clip drive (his "Decapitator on everything"). 1 = clean, 4 = gritty
+const HARMONY_STEPS = 2; // 2nd note, in SCALE steps above the root (always stays in key).
+//                          2 = thirds/fourths (lush), 3 = the authentic "+5th" flavor, 0 = octave double
+const HARMONY_MIX = 0.6; // loudness of the 2nd note vs the main note. 0 = off (one note), 1 = equal
+const GLIDE = 0.09; // pitch slide between notes — Mike Dean's signature portamento.
+//                     0.02 = snappy/instrument-like, 0.15 = very liquid/slidey. THIS is the big lever.
+const DETUNE_CENTS = 11; // width of each note's twin saw. bigger = thicker/wider, 0 = plain
+const SUB_MIX = 0.5; // sub-octave body underneath. 0 = thin, 0.8 = boomy
+const VOLUME = 0.12; // overall loudness of a held note
+const REVERB_WET = 0.55; // reverb amount — big & drenched like his outros (he runs ~50–60%)
+const REVERB_SECONDS = 4.5; // reverb tail length (he uses 4–6s halls). longer = bigger room
+const REVERB_DECAY = 2.2; // tail shape. higher = faster fade
+const DELAY_TIME = 0.39; // echo spacing — ~1/4 note at the track's double-time feel
+const DELAY_FEEDBACK = 0.45; // number of echo repeats (0–0.7; he rides ~50%)
+const DELAY_MIX = 0.2; // echo loudness. 0 = no echo
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GRAY = new THREE.Color('#b6b6be'); // soft resting dot — visible but quiet on white
+const RED = new THREE.Color('#8a0a00'); // lit dot (gently bloomed below)
+
+// ── LOOK KNOBS — visual feel, tweak + refresh ────────────────────────────────
+const HDR_BOOST = 1.2; // how hard lit dots glow. kept low on white so red stays red, not white-hot
+const TRAIL_DECAY = 3.0; // how fast the column wake fades (higher = shorter trail)
+const TRAIL_GLOW = 0.7; // brightness of the trailing column wake
+// ─────────────────────────────────────────────────────────────────────────────
 
 // iOS routes WebAudio through the ringer channel, so the hardware silent switch
 // mutes it. Detect iOS so we can re-route output through an <audio> media element
@@ -50,6 +77,7 @@ type Audio = {
   ctx: AudioContext;
   osc1: OscillatorNode;
   osc2: OscillatorNode;
+  osc3: OscillatorNode; // the harmony note (2nd voice)
   sub: OscillatorNode;
   filter: BiquadFilterNode;
   voice: GainNode;
@@ -72,30 +100,50 @@ function makeReverbIR(ctx: AudioContext, seconds: number, decay: number) {
   return buf;
 }
 
+// tanh soft-clip curve — analog-style saturation that fattens the two saws
+function makeSaturationCurve(drive: number) {
+  const n = 1024;
+  const curve = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    curve[i] = Math.tanh(drive * x);
+  }
+  return curve;
+}
+
 function createAudio(): Audio {
   const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const ctx = new Ctor();
 
-  // two slightly detuned saws + a sine sub-oscillator for warmth/body
+  // two slightly detuned saws (the main note) + a sine sub-oscillator for warmth/body
   const osc1 = ctx.createOscillator();
   osc1.type = 'sawtooth';
   const osc2 = ctx.createOscillator();
   osc2.type = 'sawtooth';
-  osc2.detune.value = 7;
+  osc2.detune.value = DETUNE_CENTS;
+
+  // the harmony note — a 2nd voice a fixed interval above, so a held note is a chord
+  const osc3 = ctx.createOscillator();
+  osc3.type = 'sawtooth';
+  osc3.detune.value = -DETUNE_CENTS; // detuned the other way for width
+  const harmonyGain = ctx.createGain();
+  harmonyGain.gain.value = HARMONY_MIX;
+
   const sub = ctx.createOscillator();
   sub.type = 'sine';
   const subGain = ctx.createGain();
-  subGain.gain.value = 0.55;
+  subGain.gain.value = SUB_MIX;
 
   // gentle vibrato/chorus shimmer
   const lfo = ctx.createOscillator();
   lfo.type = 'sine';
-  lfo.frequency.value = 5;
+  lfo.frequency.value = 5.5;
   const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 3; // cents
+  lfoGain.gain.value = 8; // cents of vibrato (expressive, vocal-ish)
   lfo.connect(lfoGain);
   lfoGain.connect(osc1.detune);
   lfoGain.connect(osc2.detune);
+  lfoGain.connect(osc3.detune);
 
   const filter = ctx.createBiquadFilter();
   filter.type = 'lowpass';
@@ -105,11 +153,27 @@ function createAudio(): Audio {
   const voice = ctx.createGain();
   voice.gain.value = 0;
 
+  // analog-style saturation — fattens the saws before they hit the FX
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = makeSaturationCurve(SATURATION);
+  shaper.oversample = '2x';
+
   // polished space via a short convolution reverb
   const convolver = ctx.createConvolver();
-  convolver.buffer = makeReverbIR(ctx, 1.8, 2.4);
+  convolver.buffer = makeReverbIR(ctx, REVERB_SECONDS, REVERB_DECAY);
   const wet = ctx.createGain();
-  wet.gain.value = 0.3;
+  wet.gain.value = REVERB_WET;
+
+  // feedback delay → echoing repeats, the dubby Mike Dean tail
+  const delay = ctx.createDelay(1.0);
+  delay.delayTime.value = DELAY_TIME;
+  const feedback = ctx.createGain();
+  feedback.gain.value = DELAY_FEEDBACK;
+  const delayWet = ctx.createGain();
+  delayWet.gain.value = DELAY_MIX;
+  delay.connect(feedback);
+  feedback.connect(delay); // the repeat loop
+  delay.connect(delayWet);
 
   const comp = ctx.createDynamicsCompressor();
   const analyser = ctx.createAnalyser();
@@ -118,11 +182,17 @@ function createAudio(): Audio {
 
   osc1.connect(filter);
   osc2.connect(filter);
+  osc3.connect(harmonyGain);
+  harmonyGain.connect(filter);
   sub.connect(subGain);
   subGain.connect(filter);
   filter.connect(voice);
-  voice.connect(comp); // dry
-  voice.connect(convolver);
+  voice.connect(shaper); // envelope → saturation
+  shaper.connect(comp); // dry (saturated)
+  shaper.connect(convolver);
+  shaper.connect(delay); // feed the echoes
+  delayWet.connect(comp); // echoes (dry path)
+  delayWet.connect(convolver); // echoes also picked up by the reverb tail
   convolver.connect(wet);
   wet.connect(comp); // wet (reverb)
   comp.connect(analyser);
@@ -143,9 +213,10 @@ function createAudio(): Audio {
 
   osc1.start();
   osc2.start();
+  osc3.start();
   sub.start();
   lfo.start();
-  return { ctx, osc1, osc2, sub, filter, voice, analyser, data, mediaEl };
+  return { ctx, osc1, osc2, osc3, sub, filter, voice, analyser, data, mediaEl };
 }
 
 function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
@@ -159,7 +230,7 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const hitV = useMemo(() => new THREE.Vector3(), []);
-  const geo = useMemo(() => new THREE.SphereGeometry(DOT_R, 16, 16), []);
+  const geo = useMemo(() => new THREE.SphereGeometry(DOT_R, 12, 12), []);
   const mat = useMemo(() => new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1, toneMapped: false }), []);
 
   const ndc = useRef(new THREE.Vector2(0, 0));
@@ -168,6 +239,7 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
   const playing = useRef(false);
   const glow = useRef(0);
   const clock = useRef(0);
+  const colTrail = useRef(new Float32Array(GRID)); // per-column wake, decays each frame
   const hoverDevice = useMemo(
     () => typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches,
     []
@@ -292,13 +364,15 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
     if (a) {
       const t = a.ctx.currentTime;
       if (playing.current && active) {
-        const freq = colToFreq(Math.round((cursor.current.gx / (GRID - 1)) * PITCH_STEPS));
-        a.osc1.frequency.setTargetAtTime(freq, t, 0.05);
-        a.osc2.frequency.setTargetAtTime(freq, t, 0.05);
-        a.sub.frequency.setTargetAtTime(freq * 0.5, t, 0.05); // sub an octave below
+        const col = Math.round((cursor.current.gx / (GRID - 1)) * PITCH_STEPS);
+        const freq = colToFreq(col);
+        a.osc1.frequency.setTargetAtTime(freq, t, GLIDE);
+        a.osc2.frequency.setTargetAtTime(freq, t, GLIDE);
+        a.osc3.frequency.setTargetAtTime(colToFreq(col + HARMONY_STEPS), t, GLIDE); // in-scale harmony note
+        a.sub.frequency.setTargetAtTime(freq * 0.5, t, GLIDE); // sub an octave below
         const cutoff = 250 * Math.pow(20, cursor.current.gz / (GRID - 1)); // ~250→5000Hz
         a.filter.frequency.setTargetAtTime(cutoff, t, 0.04);
-        a.voice.gain.setTargetAtTime(0.14, t, 0.04); // smoother attack
+        a.voice.gain.setTargetAtTime(VOLUME, t, 0.04); // smoother attack
       } else {
         a.voice.gain.setTargetAtTime(0, t, 0.22); // smoother release
       }
@@ -318,7 +392,13 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
     const cwx = worldX(cgx);
     const cwz = worldZ(cgz);
     const activeCol = Math.round(cgx);
-    const time = clock.current;
+
+    // column wake: decay every column, then re-light the one under the cursor
+    const trail = colTrail.current;
+    const decay = Math.exp(-dt * TRAIL_DECAY);
+    for (let c = 0; c < GRID; c++) trail[c] *= decay;
+    if (glow.current > 0.01) trail[activeCol] = Math.max(trail[activeCol], glow.current);
+
     for (let i = 0; i < COUNT; i++) {
       const cx = i % GRID;
       const cz = Math.floor(i / GRID);
@@ -328,16 +408,18 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
       const dz = wz - cwz;
       // world-space falloff → the lit blob stays the same physical size at any dot density
       const infl = Math.exp(-(dx * dx + dz * dz) * 0.7) * glow.current;
-      const bob = Math.sin(time * 1.6 + cx * 0.5 + cz * 0.5) * 0.04;
-      const h = infl * 1.6 + bob + rms * infl * 0.9;
+      const tcol = trail[cx] * TRAIL_GLOW; // fading wake on columns the cursor passed
+      const h = infl * 1.6 + rms * infl * 0.9 + tcol * 0.3;
       const s = 1 + infl * 1.6 + rms * 0.3 * infl;
       dummy.position.set(wx, h, wz);
       dummy.scale.setScalar(s);
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
 
-      const colHi = cx === activeCol ? 0.22 * glow.current : 0;
-      tmpColor.copy(GRAY).lerp(RED, Math.min(1, infl + colHi));
+      tmpColor.copy(GRAY).lerp(RED, Math.min(1, infl + tcol));
+      // push strongly-lit dots past white so the bloom pass turns them into glow
+      const hot = infl + tcol * 0.6;
+      if (hot > 0.15) tmpColor.multiplyScalar(1 + hot * HDR_BOOST);
       mesh.setColorAt(i, tmpColor);
     }
     mesh.instanceMatrix.needsUpdate = true;
@@ -352,12 +434,12 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
 
   return (
     <>
-      <ambientLight intensity={0.6} />
+      <ambientLight intensity={0.65} />
       <directionalLight position={[5, 10, 6]} intensity={0.95} />
       <instancedMesh ref={meshRef} args={[geo, mat, COUNT]} />
       <mesh ref={markerRef}>
         <sphereGeometry args={[0.18, 18, 18]} />
-        <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={0.6} transparent toneMapped={false} />
+        <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={1.0} transparent toneMapped={false} />
       </mesh>
     </>
   );
@@ -381,12 +463,15 @@ export default function SynthPad({ compact = false }: { compact?: boolean }) {
       ref={wrapRef}
       className={`relative w-full rounded-2xl overflow-hidden ${compact ? 'h-40' : 'h-[60vh]'}`}
       style={{
-        background: 'radial-gradient(120% 120% at 50% 20%, #ffffff 0%, #efefef 60%, #e4e4e4 100%)',
+        background: 'radial-gradient(120% 120% at 50% 20%, #ffffff 0%, #f1f1f4 60%, #e6e6ea 100%)',
         touchAction: 'none',
       }}
     >
-      <Canvas frameloop={inView ? 'always' : 'demand'} dpr={[1, 1.6]} camera={{ position: [0, 8, 8.5], fov: 38 }} gl={{ antialias: true }}>
+      <Canvas frameloop={inView ? 'always' : 'demand'} dpr={[1, 1.6]} camera={{ position: [0, 8, 8.5], fov: 32 }} gl={{ antialias: true }}>
         <Scene onStart={() => setStarted(true)} active={inView} />
+        <EffectComposer>
+          <Bloom intensity={0.45} luminanceThreshold={0.5} luminanceSmoothing={0.3} mipmapBlur />
+        </EffectComposer>
       </Canvas>
 
       {!started && (
