@@ -76,6 +76,7 @@ export default function Page() {
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines and playful, animated web experiences.
                     Tap the dot grid and move around to play it — it&apos;s a little synth (left/right changes the note, near/far changes the tone).
+                    It&apos;s polyphonic: use up to 5 fingers for chords on mobile, or right-click to hold notes on desktop.
                     Keep scrolling to see more.
                   </p>
                   <div className="mt-8 flex items-center gap-3 text-black/60 font-glacial">

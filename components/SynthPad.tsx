@@ -8,16 +8,21 @@ import * as THREE from 'three';
 /**
  * 3D XY synth pad — a "dot matrix" instrument.
  *
- * The cursor's position on a 3D grid of dots drives a WebAudio synth:
+ * Each touch point's position on a 3D grid of dots drives a WebAudio synth voice:
  *   - X (left→right) → pitch, quantized to a pentatonic scale (always sounds good)
  *   - Y (near→far)   → low-pass filter cutoff / brightness
- * Dots near the cursor rise, scale and glow red; the whole matrix pulses with the
- * live audio amplitude. Hover plays on desktop, drag plays on touch — both unlocked
- * by the first tap (autoplay policy). Native WebAudio + R3F, no extra dependencies.
+ * It is polyphonic: up to MAX_VOICES notes can sound at once.
+ *   - On phones, play chords with multiple fingers (multi-touch).
+ *   - On desktop, hover to play one note and RIGHT-CLICK to latch (hold) a note in
+ *     place, so you can stack several held notes and keep playing over them.
+ * Dots near a touch point rise, scale and glow red; the whole matrix pulses with the
+ * live audio amplitude. Everything is unlocked by the first tap (autoplay policy).
+ * Native WebAudio + R3F, no extra dependencies.
  *
  * Audio chain inspired by standard subtractive-synth patches; original code.
  */
 
+const MAX_VOICES = 5; // polyphony cap — max simultaneous notes (fingers + latched)
 const GRID = 64; // dots per side
 const EXTENT = 16; // world size of the dot field — larger than the frame so it fills the box
 const COUNT = GRID * GRID;
@@ -73,14 +78,20 @@ function colToFreq(col: number) {
   return BASE_FREQ * Math.pow(2, semis / 12);
 }
 
-type Audio = {
-  ctx: AudioContext;
+// one polyphony voice — its own oscillator stack, filter and envelope gain.
+// Every voice feeds the SHARED saturation/reverb/delay chain built in createAudio.
+type Voice = {
   osc1: OscillatorNode;
   osc2: OscillatorNode;
-  osc3: OscillatorNode; // the harmony note (2nd voice)
+  osc3: OscillatorNode; // the harmony note (2nd oscillator a fixed interval up)
   sub: OscillatorNode;
   filter: BiquadFilterNode;
-  voice: GainNode;
+  gain: GainNode; // envelope (0 = silent, VOLUME = held)
+};
+
+type Audio = {
+  ctx: AudioContext;
+  voices: Voice[]; // MAX_VOICES of them
   analyser: AnalyserNode;
   data: Uint8Array;
   mediaEl: HTMLAudioElement | null; // iOS-only: output sink that bypasses the silent switch
@@ -111,10 +122,9 @@ function makeSaturationCurve(drive: number) {
   return curve;
 }
 
-function createAudio(): Audio {
-  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  const ctx = new Ctor();
-
+// build one independent voice and wire it into the shared `shaper` input.
+// `lfoGain` (shared vibrato) is fanned into each oscillator's detune.
+function createVoice(ctx: AudioContext, shaper: AudioNode, lfoGain: GainNode): Voice {
   // two slightly detuned saws (the main note) + a sine sub-oscillator for warmth/body
   const osc1 = ctx.createOscillator();
   osc1.type = 'sawtooth';
@@ -122,7 +132,7 @@ function createAudio(): Audio {
   osc2.type = 'sawtooth';
   osc2.detune.value = DETUNE_CENTS;
 
-  // the harmony note — a 2nd voice a fixed interval above, so a held note is a chord
+  // the harmony note — a 2nd oscillator a fixed interval above, so a held note is a chord
   const osc3 = ctx.createOscillator();
   osc3.type = 'sawtooth';
   osc3.detune.value = -DETUNE_CENTS; // detuned the other way for width
@@ -134,13 +144,7 @@ function createAudio(): Audio {
   const subGain = ctx.createGain();
   subGain.gain.value = SUB_MIX;
 
-  // gentle vibrato/chorus shimmer
-  const lfo = ctx.createOscillator();
-  lfo.type = 'sine';
-  lfo.frequency.value = 5.5;
-  const lfoGain = ctx.createGain();
-  lfoGain.gain.value = 8; // cents of vibrato (expressive, vocal-ish)
-  lfo.connect(lfoGain);
+  // shared vibrato/chorus shimmer modulates this voice's detune
   lfoGain.connect(osc1.detune);
   lfoGain.connect(osc2.detune);
   lfoGain.connect(osc3.detune);
@@ -150,8 +154,36 @@ function createAudio(): Audio {
   filter.frequency.value = 800;
   filter.Q.value = 1.2; // low resonance → smooth, not buzzy
 
-  const voice = ctx.createGain();
-  voice.gain.value = 0;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+
+  osc1.connect(filter);
+  osc2.connect(filter);
+  osc3.connect(harmonyGain);
+  harmonyGain.connect(filter);
+  sub.connect(subGain);
+  subGain.connect(filter);
+  filter.connect(gain);
+  gain.connect(shaper); // envelope → shared saturation/FX
+
+  osc1.start();
+  osc2.start();
+  osc3.start();
+  sub.start();
+  return { osc1, osc2, osc3, sub, filter, gain };
+}
+
+function createAudio(): Audio {
+  const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const ctx = new Ctor();
+
+  // one shared vibrato LFO for every voice
+  const lfo = ctx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = 5.5;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 8; // cents of vibrato (expressive, vocal-ish)
+  lfo.connect(lfoGain);
 
   // analog-style saturation — fattens the saws before they hit the FX
   const shaper = ctx.createWaveShaper();
@@ -180,14 +212,6 @@ function createAudio(): Audio {
   analyser.fftSize = 256;
   const data = new Uint8Array(analyser.frequencyBinCount);
 
-  osc1.connect(filter);
-  osc2.connect(filter);
-  osc3.connect(harmonyGain);
-  harmonyGain.connect(filter);
-  sub.connect(subGain);
-  subGain.connect(filter);
-  filter.connect(voice);
-  voice.connect(shaper); // envelope → saturation
   shaper.connect(comp); // dry (saturated)
   shaper.connect(convolver);
   shaper.connect(delay); // feed the echoes
@@ -196,6 +220,10 @@ function createAudio(): Audio {
   convolver.connect(wet);
   wet.connect(comp); // wet (reverb)
   comp.connect(analyser);
+
+  // all voices share the saturation → FX → comp chain above
+  const voices: Voice[] = [];
+  for (let i = 0; i < MAX_VOICES; i++) voices.push(createVoice(ctx, shaper, lfoGain));
 
   // On iOS, send audio through a media element so it plays on the media channel
   // (immune to the ringer/silent switch). Elsewhere, the normal output is fine.
@@ -211,18 +239,14 @@ function createAudio(): Audio {
     comp.connect(ctx.destination);
   }
 
-  osc1.start();
-  osc2.start();
-  osc3.start();
-  sub.start();
   lfo.start();
-  return { ctx, osc1, osc2, osc3, sub, filter, voice, analyser, data, mediaEl };
+  return { ctx, voices, analyser, data, mediaEl };
 }
 
 function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
   const { camera, gl } = useThree();
   const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const markerRef = useRef<THREE.Mesh>(null!);
+  const markerRefs = useRef<THREE.Mesh[]>([]); // one marker per possible voice
 
   const audioRef = useRef<Audio | null>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -230,13 +254,19 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), []);
   const hitV = useMemo(() => new THREE.Vector3(), []);
+  const tmpNdc = useMemo(() => new THREE.Vector2(), []);
   const geo = useMemo(() => new THREE.SphereGeometry(DOT_R, 12, 12), []);
   const mat = useMemo(() => new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0.1, toneMapped: false }), []);
 
-  const ndc = useRef(new THREE.Vector2(0, 0));
-  const cursor = useRef({ gx: (GRID - 1) / 2, gz: (GRID - 1) / 2 });
-  const engaged = useRef(false);
-  const playing = useRef(false);
+  // active notes, keyed by a stable id:
+  //   t<pointerId> = a finger / pressed pointer   ·   hover = the desktop hover note
+  //   c<n>         = a right-click latched (held) note
+  // x/y are normalized device coords (−1..1) on the canvas.
+  const notes = useRef(new Map<string, { x: number; y: number; latched: boolean }>());
+  const voiceOf = useRef(new Map<string, number>()); // note id → assigned voice index
+  const freeVoices = useRef<number[]>(Array.from({ length: MAX_VOICES }, (_, i) => MAX_VOICES - 1 - i));
+  const justStarted = useRef(new Set<number>()); // voices that should JUMP (no glide) this frame
+  const latchSeq = useRef(0); // counter for unique latched-note ids
   const glow = useRef(0);
   const clock = useRef(0);
   const colTrail = useRef(new Float32Array(GRID)); // per-column wake, decays each frame
@@ -276,40 +306,83 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
 
   useEffect(() => {
     const el = gl.domElement;
-    const setNdc = (e: PointerEvent) => {
+    const m = notes.current;
+    const toXY = (e: { clientX: number; clientY: number }) => {
       const r = el.getBoundingClientRect();
-      ndc.current.set(
-        ((e.clientX - r.left) / r.width) * 2 - 1,
-        -(((e.clientY - r.top) / r.height) * 2 - 1)
-      );
+      return {
+        x: ((e.clientX - r.left) / r.width) * 2 - 1,
+        y: -(((e.clientY - r.top) / r.height) * 2 - 1),
+      };
     };
+
+    // Touch / pen / mouse-button → a held note per pointer (capped at MAX_VOICES).
+    // On hover devices the mouse is handled by the hover note below instead.
     const onDown = (e: PointerEvent) => {
       unlock();
-      setNdc(e);
-      engaged.current = true;
-      playing.current = true;
+      if (hoverDevice && e.pointerType === 'mouse') return;
+      const id = `t${e.pointerId}`;
+      if (!m.has(id) && m.size >= MAX_VOICES) return; // at the polyphony cap
+      const p = toXY(e);
+      m.set(id, { x: p.x, y: p.y, latched: false });
     };
     const onMove = (e: PointerEvent) => {
-      setNdc(e);
-      engaged.current = true;
-      if (hoverDevice && audioRef.current) playing.current = true;
+      const p = toXY(e);
+      if (hoverDevice && e.pointerType === 'mouse') {
+        // hover note follows the cursor (only if it already exists or there's room)
+        if (m.has('hover') || m.size < MAX_VOICES) m.set('hover', { x: p.x, y: p.y, latched: false });
+        return;
+      }
+      const id = `t${e.pointerId}`;
+      if (m.has(id)) m.set(id, { x: p.x, y: p.y, latched: false });
     };
-    const onUp = () => {
-      if (!hoverDevice) playing.current = false;
+    const onUp = (e: PointerEvent) => {
+      if (hoverDevice && e.pointerType === 'mouse') return; // hover note clears on leave
+      m.delete(`t${e.pointerId}`);
+    };
+    const onCancel = (e: PointerEvent) => {
+      m.delete(`t${e.pointerId}`);
     };
     const onLeave = () => {
-      engaged.current = false;
-      playing.current = false;
+      if (hoverDevice) m.delete('hover');
     };
+
+    // Right-click latches (holds) a note in place so you can stack chords; right-
+    // clicking on (or near) a latched note removes it again.
+    const onContext = (e: MouseEvent) => {
+      e.preventDefault();
+      unlock();
+      const p = toXY(e);
+      for (const [id, n] of m) {
+        if (n.latched && Math.hypot(n.x - p.x, n.y - p.y) < 0.12) {
+          m.delete(id);
+          return; // toggled an existing latch off
+        }
+      }
+      if (m.size >= MAX_VOICES) return; // at the polyphony cap
+      m.set(`c${latchSeq.current++}`, { x: p.x, y: p.y, latched: true });
+    };
+
+    // Double-click anywhere → reset: clear every held/latched note at once.
+    const onDouble = (e: MouseEvent) => {
+      e.preventDefault();
+      m.clear();
+    };
+
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onCancel);
     el.addEventListener('pointerleave', onLeave);
+    el.addEventListener('contextmenu', onContext);
+    el.addEventListener('dblclick', onDouble);
     return () => {
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onCancel);
       el.removeEventListener('pointerleave', onLeave);
+      el.removeEventListener('contextmenu', onContext);
+      el.removeEventListener('dblclick', onDouble);
     };
   }, [gl, hoverDevice]);
 
@@ -318,8 +391,7 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
     if (active) return;
     const a = audioRef.current;
     if (a) {
-      playing.current = false;
-      a.voice.gain.setTargetAtTime(0, a.ctx.currentTime, 0.05);
+      for (const v of a.voices) v.gain.gain.setTargetAtTime(0, a.ctx.currentTime, 0.05);
     }
   }, [active]);
 
@@ -329,8 +401,12 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
       const a = audioRef.current;
       if (a) {
         try {
-          a.osc1.stop();
-          a.osc2.stop();
+          for (const v of a.voices) {
+            v.osc1.stop();
+            v.osc2.stop();
+            v.osc3.stop();
+            v.sub.stop();
+          }
           if (a.mediaEl) {
             a.mediaEl.pause();
             a.mediaEl.srcObject = null;
@@ -346,35 +422,82 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
     };
   }, [geo, mat]);
 
+  // scratch arrays reused every frame (avoid per-frame allocation)
+  const cursors = useRef<{ id: string; gx: number; gz: number }[]>([]);
+
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05);
     clock.current += dt;
 
-    // cursor → grid coordinates
-    raycaster.setFromCamera(ndc.current, camera);
-    if (raycaster.ray.intersectPlane(plane, hitV)) {
-      cursor.current.gx = THREE.MathUtils.clamp((hitV.x / EXTENT + 0.5) * (GRID - 1), 0, GRID - 1);
-      cursor.current.gz = THREE.MathUtils.clamp((hitV.z / EXTENT + 0.5) * (GRID - 1), 0, GRID - 1);
+    // resolve every active note's screen position → a grid coordinate
+    const list = cursors.current;
+    list.length = 0;
+    for (const [id, n] of notes.current) {
+      tmpNdc.set(n.x, n.y);
+      raycaster.setFromCamera(tmpNdc, camera);
+      let gx = (GRID - 1) / 2;
+      let gz = (GRID - 1) / 2;
+      if (raycaster.ray.intersectPlane(plane, hitV)) {
+        gx = THREE.MathUtils.clamp((hitV.x / EXTENT + 0.5) * (GRID - 1), 0, GRID - 1);
+        gz = THREE.MathUtils.clamp((hitV.z / EXTENT + 0.5) * (GRID - 1), 0, GRID - 1);
+      }
+      list.push({ id, gx, gz });
     }
-    glow.current += ((engaged.current ? 1 : 0) - glow.current) * Math.min(1, dt * 8);
+    const anyActive = list.length > 0;
+    glow.current += ((anyActive ? 1 : 0) - glow.current) * Math.min(1, dt * 8);
 
-    // drive the synth
+    // drive the synth — assign each note a stable voice, free voices when notes end
     const a = audioRef.current;
     let rms = 0;
     if (a) {
       const t = a.ctx.currentTime;
-      if (playing.current && active) {
-        const col = Math.round((cursor.current.gx / (GRID - 1)) * PITCH_STEPS);
-        const freq = colToFreq(col);
-        a.osc1.frequency.setTargetAtTime(freq, t, GLIDE);
-        a.osc2.frequency.setTargetAtTime(freq, t, GLIDE);
-        a.osc3.frequency.setTargetAtTime(colToFreq(col + HARMONY_STEPS), t, GLIDE); // in-scale harmony note
-        a.sub.frequency.setTargetAtTime(freq * 0.5, t, GLIDE); // sub an octave below
-        const cutoff = 250 * Math.pow(20, cursor.current.gz / (GRID - 1)); // ~250→5000Hz
-        a.filter.frequency.setTargetAtTime(cutoff, t, 0.04);
-        a.voice.gain.setTargetAtTime(VOLUME, t, 0.04); // smoother attack
-      } else {
-        a.voice.gain.setTargetAtTime(0, t, 0.22); // smoother release
+      // release voices whose note has ended
+      for (const [id, vi] of voiceOf.current) {
+        if (!notes.current.has(id)) {
+          voiceOf.current.delete(id);
+          freeVoices.current.push(vi);
+        }
+      }
+      // assign a fresh voice to any new note (jump to pitch — no glide-in)
+      for (const id of notes.current.keys()) {
+        if (!voiceOf.current.has(id) && freeVoices.current.length) {
+          const vi = freeVoices.current.pop()!;
+          voiceOf.current.set(id, vi);
+          justStarted.current.add(vi);
+        }
+      }
+      // map voice index → its note's grid position this frame
+      const byVoice: ({ gx: number; gz: number } | undefined)[] = new Array(MAX_VOICES);
+      for (const c of list) {
+        const vi = voiceOf.current.get(c.id);
+        if (vi !== undefined) byVoice[vi] = c;
+      }
+      for (let vi = 0; vi < MAX_VOICES; vi++) {
+        const v = a.voices[vi];
+        const c = byVoice[vi];
+        if (c && active) {
+          const col = Math.round((c.gx / (GRID - 1)) * PITCH_STEPS);
+          const freq = colToFreq(col);
+          const harm = colToFreq(col + HARMONY_STEPS); // in-scale harmony note
+          if (justStarted.current.has(vi)) {
+            // new note — jump straight to pitch so a fresh tap doesn't slide in
+            v.osc1.frequency.setValueAtTime(freq, t);
+            v.osc2.frequency.setValueAtTime(freq, t);
+            v.osc3.frequency.setValueAtTime(harm, t);
+            v.sub.frequency.setValueAtTime(freq * 0.5, t);
+            justStarted.current.delete(vi);
+          } else {
+            v.osc1.frequency.setTargetAtTime(freq, t, GLIDE);
+            v.osc2.frequency.setTargetAtTime(freq, t, GLIDE);
+            v.osc3.frequency.setTargetAtTime(harm, t, GLIDE);
+            v.sub.frequency.setTargetAtTime(freq * 0.5, t, GLIDE); // sub an octave below
+          }
+          const cutoff = 250 * Math.pow(20, c.gz / (GRID - 1)); // ~250→5000Hz
+          v.filter.frequency.setTargetAtTime(cutoff, t, 0.04);
+          v.gain.gain.setTargetAtTime(VOLUME, t, 0.04); // smoother attack
+        } else {
+          v.gain.gain.setTargetAtTime(0, t, 0.22); // smoother release
+        }
       }
       a.analyser.getByteTimeDomainData(a.data);
       let sum = 0;
@@ -387,28 +510,33 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
 
     // update the dot matrix
     const mesh = meshRef.current;
-    const cgx = cursor.current.gx;
-    const cgz = cursor.current.gz;
-    const cwx = worldX(cgx);
-    const cwz = worldZ(cgz);
-    const activeCol = Math.round(cgx);
 
-    // column wake: decay every column, then re-light the one under the cursor
+    // column wake: decay every column, then re-light the ones under each note
     const trail = colTrail.current;
     const decay = Math.exp(-dt * TRAIL_DECAY);
     for (let c = 0; c < GRID; c++) trail[c] *= decay;
-    if (glow.current > 0.01) trail[activeCol] = Math.max(trail[activeCol], glow.current);
+    if (glow.current > 0.01) {
+      for (const c of list) {
+        const col = Math.round(c.gx);
+        trail[col] = Math.max(trail[col], glow.current);
+      }
+    }
 
     for (let i = 0; i < COUNT; i++) {
       const cx = i % GRID;
       const cz = Math.floor(i / GRID);
       const wx = worldX(cx);
       const wz = worldZ(cz);
-      const dx = wx - cwx;
-      const dz = wz - cwz;
-      // world-space falloff → the lit blob stays the same physical size at any dot density
-      const infl = Math.exp(-(dx * dx + dz * dz) * 0.7) * glow.current;
-      const tcol = trail[cx] * TRAIL_GLOW; // fading wake on columns the cursor passed
+      // world-space falloff → the lit blob stays the same physical size at any density.
+      // Sum the influence of every active note so chords light multiple blobs.
+      let infl = 0;
+      for (const c of list) {
+        const dx = wx - worldX(c.gx);
+        const dz = wz - worldZ(c.gz);
+        infl += Math.exp(-(dx * dx + dz * dz) * 0.7);
+      }
+      infl = Math.min(infl, 2) * glow.current;
+      const tcol = trail[cx] * TRAIL_GLOW; // fading wake on columns notes passed
       const h = infl * 1.6 + rms * infl * 0.9 + tcol * 0.3;
       const s = 1 + infl * 1.6 + rms * 0.3 * infl;
       dummy.position.set(wx, h, wz);
@@ -425,11 +553,20 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 
-    // cursor marker
-    const mk = markerRef.current;
-    mk.position.set(worldX(cgx), 1.6 * glow.current + 0.35, worldZ(cgz));
-    mk.scale.setScalar(0.0001 + 0.6 * glow.current);
-    (mk.material as THREE.MeshStandardMaterial).opacity = glow.current;
+    // one marker per active note (extras parked invisible)
+    for (let i = 0; i < MAX_VOICES; i++) {
+      const mk = markerRefs.current[i];
+      if (!mk) continue;
+      const c = list[i];
+      if (c) {
+        mk.position.set(worldX(c.gx), 1.6 * glow.current + 0.35, worldZ(c.gz));
+        mk.scale.setScalar(0.0001 + 0.6 * glow.current);
+        (mk.material as THREE.MeshStandardMaterial).opacity = glow.current;
+      } else {
+        mk.scale.setScalar(0.0001);
+        (mk.material as THREE.MeshStandardMaterial).opacity = 0;
+      }
+    }
   });
 
   return (
@@ -437,10 +574,17 @@ function Scene({ onStart, active }: { onStart: () => void; active: boolean }) {
       <ambientLight intensity={0.65} />
       <directionalLight position={[5, 10, 6]} intensity={0.95} />
       <instancedMesh ref={meshRef} args={[geo, mat, COUNT]} />
-      <mesh ref={markerRef}>
-        <sphereGeometry args={[0.18, 18, 18]} />
-        <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={1.0} transparent toneMapped={false} />
-      </mesh>
+      {Array.from({ length: MAX_VOICES }).map((_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            if (el) markerRefs.current[i] = el;
+          }}
+        >
+          <sphereGeometry args={[0.18, 18, 18]} />
+          <meshStandardMaterial color={RED} emissive={RED} emissiveIntensity={1.0} transparent toneMapped={false} />
+        </mesh>
+      ))}
     </>
   );
 }
@@ -449,6 +593,10 @@ export default function SynthPad({ compact = false }: { compact?: boolean }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(true);
   const [started, setStarted] = useState(false);
+  const hoverDevice = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches,
+    []
+  );
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -475,9 +623,11 @@ export default function SynthPad({ compact = false }: { compact?: boolean }) {
       </Canvas>
 
       {!started && (
-        <div className="absolute inset-0 grid place-items-center pointer-events-none">
+        <div className="absolute inset-0 grid place-items-center pointer-events-none px-4 text-center">
           <div className="px-4 py-2 rounded-full bg-black/55 text-white text-sm font-glacial backdrop-blur-sm">
-            ▶ tap &amp; move to play
+            {hoverDevice
+              ? '▶ move to play · right-click to hold up to 5 · double-click to reset'
+              : '▶ tap & move to play · use up to 5 fingers for chords'}
           </div>
         </div>
       )}
