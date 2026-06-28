@@ -613,6 +613,10 @@ export default function SynthPad({ compact = false }: { compact?: boolean }) {
       style={{
         background: 'radial-gradient(120% 120% at 50% 20%, #ffffff 0%, #f1f1f4 60%, #e6e6ea 100%)',
         touchAction: 'none',
+        // stop the long-press text-selection / callout on touch screens
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
       }}
     >
       <Canvas frameloop={inView ? 'always' : 'demand'} dpr={[1, 1.6]} camera={{ position: [0, 8, 8.5], fov: 32 }} gl={{ antialias: true }}>
