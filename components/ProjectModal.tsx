@@ -1,8 +1,15 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, MotionProps, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 
+/**
+ * App Store-style expand card (our own take on Motion UI's expand-card):
+ * the grid tile morphs into a centred detail panel; the title and tags are
+ * shared elements that travel with the surface, the rest of the body
+ * cross-fades in once the morph lands, and closing restores focus to the
+ * tile that opened it.
+ */
 export default function ProjectModal({
   project,
   onClose,
@@ -10,25 +17,23 @@ export default function ProjectModal({
   project: any;
   onClose: () => void;
 }) {
-  const [showContent, setShowContent] = useState(false);
-  const [closing, setClosing] = useState(false);
+  const triggerRef = useRef<Element | null>(null);
 
   useEffect(() => {
+    triggerRef.current = document.activeElement;
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') handleClose();
+      if (e.key === 'Escape') onClose();
     }
     document.addEventListener('keydown', onKey);
 
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // small delay to allow layout animation first
-    const timeout = setTimeout(() => setShowContent(true), 50);
-
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
-      clearTimeout(timeout);
+      // restore focus to the tile that opened the panel
+      if (triggerRef.current instanceof HTMLElement) triggerRef.current.focus();
     };
   }, [onClose]);
 
@@ -37,171 +42,126 @@ export default function ProjectModal({
   const MDiv = motion.div as React.ComponentType<
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
-  const MSpan = motion.span as React.ComponentType<
-    React.HTMLAttributes<HTMLSpanElement> & MotionProps
-  >;
   const MA = motion.a as React.ComponentType<
     React.AnchorHTMLAttributes<HTMLAnchorElement> & MotionProps
   >;
-  // Staggered-children entrance for the modal content (motion.dev variants pattern)
-  const modalList = {
-    visible: { opacity: 1, transition: { staggerChildren: 0.055 } },
-    hidden: { opacity: 0 },
-  };
-  const modalItem = {
-    visible: { opacity: 1, y: 0 },
-    hidden: { opacity: 0, y: 8 },
-  };
-  const chipPop = {
-    visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 20 } },
-    hidden: { opacity: 0, scale: 0.5 },
-  };
 
   const layoutTransition = { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 };
-  const contentTransition = { duration: 0.16, ease: [0.3, 0.7, 0.25, 1] };
 
-  const handleClose = () => {
-    setClosing(true);
-    setShowContent(false);
-
-    // wait for content exit before closing modal
-    setTimeout(() => {
-      setClosing(false);
-      onClose();
-    }, 180); // match content transition duration
+  // Non-shared body: cross-fades in after the surface morph lands.
+  const bodyList = {
+    visible: { opacity: 1, transition: { delayChildren: 0.12, staggerChildren: 0.05 } },
+    hidden: { opacity: 0 },
+  };
+  const bodyItem = {
+    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 8 },
   };
 
   return createPortal(
     <AnimatePresence>
       <MDiv
         className="fixed inset-0 z-50 flex items-center justify-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        initial={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={handleClose}
+        onClick={onClose}
       >
-        {/* Backdrop */}
+        {/* Scrim */}
         <MDiv
-          className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
+          className="absolute inset-0 bg-black backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: 0.72 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.16 }}
+          transition={{ duration: 0.18 }}
         />
 
-        {/* LayoutId card */}
+        {/* Morphing surface */}
         <MDiv
           layoutId={`card-${project.id}`}
           layout
+          role="dialog"
+          aria-modal="true"
+          aria-label={project.title}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-10 max-w-3xl w-[92%] rounded-2xl overflow-hidden"
+          className="relative z-10 max-w-3xl w-[92%] rounded-2xl bg-white p-8 shadow-2xl border border-black/10 font-glacial"
           style={{ willChange: 'transform' }}
           transition={layoutTransition}
         >
-          {/* Inner content */}
-          <AnimatePresence>
-            {(showContent || closing) && (
-              <MDiv
-                key={project.id}
-                className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative font-glacial"
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={modalList}
-                transition={contentTransition}
+          {/* Shared elements: travel with the surface */}
+          <MDiv layoutId={`title-${project.id}`} layout className="text-2xl font-glacial-bold leading-snug">
+            {project.title}
+            {project.demo && (
+              <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
+                Live
+              </span>
+            )}
+          </MDiv>
+          <MDiv layoutId={`tags-${project.id}`} layout className="mt-3 flex gap-1.5 flex-wrap">
+            {project.tags.map((t: string) => (
+              <span
+                key={t}
+                className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
               >
-                {/* Title */}
-                <MDiv
-                  className="text-2xl font-glacial-bold"
-                  variants={modalItem}
-                >
-                  {project.title}
-                </MDiv>
+                {t}
+              </span>
+            ))}
+          </MDiv>
 
-                {/* Tags */}
-                <MDiv
-                  className="flex gap-2 flex-wrap"
-                  variants={modalItem}
-                >
-                  {project.tags.map((t: string) => (
-                    <MSpan
-                      key={t}
-                      variants={chipPop}
-                      className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
-                    >
-                      {t}
-                    </MSpan>
-                  ))}
-                </MDiv>
+          {/* Body: cross-fades in after the morph */}
+          <MDiv
+            className="mt-4 flex flex-col gap-4"
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={bodyList}
+          >
+            <MDiv variants={bodyItem} className="text-sm text-black/75 leading-relaxed">
+              {project.description}
+            </MDiv>
 
-                {/* Long description */}
-                <MDiv
-                  className="text-sm text-black/75 leading-relaxed"
-                  variants={modalItem}
-                >
-                  {project.description}
-                </MDiv>
-
-                {/* Publication note */}
-                {project.note && (
-                  <MDiv
-                    className="text-sm italic text-black/60"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={contentTransition}
-                  >
-                    {project.note}
-                  </MDiv>
-                )}
-
-                {/* Links */}
-                {(project.href || project.demo) && (
-                  <MDiv
-                    className="mt-4 flex flex-wrap gap-3"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={contentTransition}
-                  >
-                    {project.demo && (
-                      <MA
-                        href={project.demo}
-                        target="_blank"
-                        rel="noreferrer"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.96 }}
-                        className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
-                      >
-                        Live demo →
-                      </MA>
-                    )}
-                    {project.href && (
-                      <MA
-                        href={project.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.96 }}
-                        className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
-                      >
-                        View on GitHub →
-                      </MA>
-                    )}
-                  </MDiv>
-                )}
-
-                {/* Close button */}
-                <button
-                  onClick={handleClose}
-                  aria-label="Close project details"
-                  className="absolute top-4 right-4 px-3 py-2 rounded-md border border-black/10 hover:bg-black/5"
-                >
-                  ✕
-                </button>
+            {project.note && (
+              <MDiv variants={bodyItem} className="text-sm italic text-black/60">
+                {project.note}
               </MDiv>
             )}
-          </AnimatePresence>
+
+            {(project.href || project.demo) && (
+              <MDiv variants={bodyItem} className="mt-2 flex flex-wrap gap-3">
+                {project.demo && (
+                  <MA
+                    href={project.demo}
+                    target="_blank"
+                    rel="noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
+                  >
+                    Live demo →
+                  </MA>
+                )}
+                {project.href && (
+                  <MA
+                    href={project.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
+                  >
+                    View on GitHub →
+                  </MA>
+                )}
+              </MDiv>
+            )}
+          </MDiv>
+
+          <button
+            onClick={onClose}
+            aria-label="Close project details"
+            className="absolute top-4 right-4 px-3 py-2 rounded-md border border-black/10 hover:bg-black/5"
+          >
+            ✕
+          </button>
         </MDiv>
       </MDiv>
     </AnimatePresence>,

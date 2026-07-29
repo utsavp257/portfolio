@@ -64,7 +64,7 @@ export default function CardStack({ children }: { children: React.ReactNode }) {
   const items = React.Children.toArray(children);
 
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="w-full md:pb-[26vh]">
       {items.map((child, i) => (
         <StackedCard
           key={i}

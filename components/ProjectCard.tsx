@@ -28,7 +28,16 @@ export default function ProjectCard({
     <MDiv
       layoutId={`card-${project.id}`}
       layout
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
       onClick={() => onOpen(project)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen(project);
+        }
+      }}
       className="group relative w-full h-full min-h-64 rounded-2xl cursor-pointer"
       initial={false}
       whileHover={{ y: -6, scale: 1.03 }}
@@ -37,8 +46,8 @@ export default function ProjectCard({
       transition={layoutTransition}
     >
       <div className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 flex flex-col font-glacial">
-        {/* Title */}
-        <MDiv className="text-lg font-glacial-bold leading-snug" layout>
+        {/* Title — shared element, morphs into the panel heading */}
+        <MDiv layoutId={`title-${project.id}`} layout className="text-lg font-glacial-bold leading-snug">
           {project.title}
           {project.demo && (
             <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
@@ -47,8 +56,8 @@ export default function ProjectCard({
           )}
         </MDiv>
 
-        {/* Tags */}
-        <MDiv className="mt-3 flex gap-1.5 flex-wrap" layout>
+        {/* Tags — shared element, morphs in tandem */}
+        <MDiv layoutId={`tags-${project.id}`} layout className="mt-3 flex gap-1.5 flex-wrap">
           {project.tags.map((t: string) => (
             <span
               key={t}
