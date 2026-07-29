@@ -46,18 +46,18 @@ export default function ProjectCard({
       style={{ perspective: 1200, willChange: 'transform' }}
       transition={layoutTransition}
     >
-      {/* Tile hides while its panel is open; reappears once the surface lands */}
-      <div
-        className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 flex flex-col font-glacial"
-        style={{
-          opacity: isActive && isModalOpen ? 0 : 1,
-          // text stays hidden while the tile glides home (~0.4s), then fades in.
-          // The delay is inert in every other state: opacity is already 1.
-          transition: isActive || isModalOpen
-            ? 'opacity 0.15s ease 0.45s, box-shadow 0.3s, border-color 0.3s'
-            : 'opacity 0.3s ease 0.45s, box-shadow 0.3s, border-color 0.3s',
-        }}
-      >
+      {/* The white box is always visible — the returning surface shrinks onto
+          it exactly, so the box never appears to move. Only the text fades. */}
+      <div className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 flex flex-col font-glacial">
+        <div
+          className="flex flex-col flex-1 min-h-0"
+          style={{
+            opacity: isActive && isModalOpen ? 0 : 1,
+            // hidden while the panel is up; plain fade back in on close
+            transition:
+              isActive && isModalOpen ? 'opacity 0.1s ease' : 'opacity 0.45s ease 0.15s',
+          }}
+        >
         {/* Title — shared element, morphs into the panel heading */}
         <MDiv layout className="text-lg font-glacial-bold leading-snug">
           {project.title}
@@ -94,6 +94,7 @@ export default function ProjectCard({
             →
           </span>
         </MDiv>
+        </div>
       </div>
     </MDiv>
   );
