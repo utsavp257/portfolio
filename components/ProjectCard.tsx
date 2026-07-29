@@ -51,9 +51,11 @@ export default function ProjectCard({
         className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 flex flex-col font-glacial"
         style={{
           opacity: isActive && isModalOpen ? 0 : 1,
+          // text stays hidden while the tile glides home (~0.4s), then fades in.
+          // The delay is inert in every other state: opacity is already 1.
           transition: isActive || isModalOpen
             ? 'opacity 0.15s ease 0.45s, box-shadow 0.3s, border-color 0.3s'
-            : 'opacity 0.1s ease, box-shadow 0.3s, border-color 0.3s',
+            : 'opacity 0.3s ease 0.45s, box-shadow 0.3s, border-color 0.3s',
         }}
       >
         {/* Title — shared element, morphs into the panel heading */}
