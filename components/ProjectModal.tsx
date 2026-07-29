@@ -98,7 +98,7 @@ export default function ProjectModal({
             exit="hidden"
             variants={bodyList}
           >
-            <MDiv variants={bodyItem} className="text-2xl font-glacial-bold leading-snug">
+            <MDiv variants={bodyItem} className="pr-16 text-2xl font-glacial-bold leading-snug">
               {project.title}
               {project.demo && (
                 <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">

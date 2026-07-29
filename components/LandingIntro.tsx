@@ -61,14 +61,19 @@ export default function LandingIntro({ onFinish }: Props) {
   useEffect(() => {
     function fitLinesToWidth() {
       if (!containerRef.current) return;
-      const available = Math.max(0, containerRef.current.clientWidth - 20); // account for container padding
+      // Fit against the real viewport: the container is a grid track that the
+      // nowrap text can inflate past the screen, so its own clientWidth lies.
+      const available = Math.max(
+        0,
+        Math.min(containerRef.current.clientWidth, window.innerWidth) - 20,
+      );
 
       // Always re-measure base font sizes on each run, because CSS uses viewport formulas
       baseFontSizesRef.current = lineRefs.map((ref) => {
         const el = ref.current;
         if (!el) return 0;
         // Clear any inline override to get the CSS-calculated size for current viewport
-        el.style.fontSize = '';
+        el.style.removeProperty('font-size');
         const cs = window.getComputedStyle(el);
         const size = parseFloat(cs.fontSize || '0');
         return isFinite(size) && size > 0 ? size : 0;
@@ -82,14 +87,22 @@ export default function LandingIntro({ onFinish }: Props) {
         const fullWidth = el.scrollWidth;
         if (available > 0 && fullWidth > 0 && baseSize > 0) {
           const ratio = available / fullWidth;
-          const newSize = ratio < 1 ? baseSize * ratio : baseSize;
-          el.style.fontSize = newSize + 'px';
+          const newSize = ratio < 1 ? baseSize * ratio * 0.98 : baseSize;
+          // inline !important — the stylesheet sizes these with !important, and
+          // a plain inline style loses that fight
+          el.style.setProperty('font-size', newSize + 'px', 'important');
         }
       });
     }
 
-    // Run after layout
+    // Run after layout — and again once fonts load: the first pass can
+    // measure fallback-font widths, which overflow badly on small screens.
     const raf = requestAnimationFrame(fitLinesToWidth);
+    if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
+      (document as any).fonts.ready.then(() => fitLinesToWidth());
+    }
+    const retry1 = window.setTimeout(fitLinesToWidth, 350);
+    const retry2 = window.setTimeout(fitLinesToWidth, 1000);
     window.addEventListener('resize', fitLinesToWidth);
     window.addEventListener('orientationchange', fitLinesToWidth);
 
@@ -101,6 +114,8 @@ export default function LandingIntro({ onFinish }: Props) {
     }
     return () => {
       cancelAnimationFrame(raf);
+      clearTimeout(retry1);
+      clearTimeout(retry2);
       window.removeEventListener('resize', fitLinesToWidth);
       window.removeEventListener('orientationchange', fitLinesToWidth);
       if (ro && containerRef.current) ro.disconnect();
