@@ -37,6 +37,25 @@ export default function ProjectModal({
   const MDiv = motion.div as React.ComponentType<
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
+  const MSpan = motion.span as React.ComponentType<
+    React.HTMLAttributes<HTMLSpanElement> & MotionProps
+  >;
+  const MA = motion.a as React.ComponentType<
+    React.AnchorHTMLAttributes<HTMLAnchorElement> & MotionProps
+  >;
+  // Staggered-children entrance for the modal content (motion.dev variants pattern)
+  const modalList = {
+    visible: { opacity: 1, transition: { staggerChildren: 0.055 } },
+    hidden: { opacity: 0 },
+  };
+  const modalItem = {
+    visible: { opacity: 1, y: 0 },
+    hidden: { opacity: 0, y: 8 },
+  };
+  const chipPop = {
+    visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 380, damping: 20 } },
+    hidden: { opacity: 0, scale: 0.5 },
+  };
 
   const layoutTransition = { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 };
   const contentTransition = { duration: 0.16, ease: [0.3, 0.7, 0.25, 1] };
@@ -85,18 +104,16 @@ export default function ProjectModal({
               <MDiv
                 key={project.id}
                 className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative font-glacial"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={modalList}
                 transition={contentTransition}
               >
                 {/* Title */}
                 <MDiv
                   className="text-2xl font-glacial-bold"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
+                  variants={modalItem}
                 >
                   {project.title}
                 </MDiv>
@@ -104,28 +121,23 @@ export default function ProjectModal({
                 {/* Tags */}
                 <MDiv
                   className="flex gap-2 flex-wrap"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
+                  variants={modalItem}
                 >
                   {project.tags.map((t: string) => (
-                    <span
+                    <MSpan
                       key={t}
+                      variants={chipPop}
                       className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
                     >
                       {t}
-                    </span>
+                    </MSpan>
                   ))}
                 </MDiv>
 
                 {/* Long description */}
                 <MDiv
                   className="text-sm text-black/75 leading-relaxed"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
+                  variants={modalItem}
                 >
                   {project.description}
                 </MDiv>
@@ -153,24 +165,28 @@ export default function ProjectModal({
                     transition={contentTransition}
                   >
                     {project.demo && (
-                      <a
+                      <MA
                         href={project.demo}
                         target="_blank"
                         rel="noreferrer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.96 }}
                         className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
                       >
                         Live demo →
-                      </a>
+                      </MA>
                     )}
                     {project.href && (
-                      <a
+                      <MA
                         href={project.href}
                         target="_blank"
                         rel="noreferrer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.96 }}
                         className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
                       >
                         View on GitHub →
-                      </a>
+                      </MA>
                     )}
                   </MDiv>
                 )}

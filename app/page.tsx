@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import ProjectCard from '../components/ProjectCard';
 import ProjectModal from '../components/ProjectModal';
 import { projects } from '../data/projects';
-import { motion, AnimatePresence, MotionProps } from 'framer-motion';
+import { motion, AnimatePresence, MotionProps, useScroll, useTransform } from 'framer-motion';
 import LandingIntro from '../components/LandingIntro';
 import SectionDivider from '../components/SectionDivider';
 import SectionWrapper from "../components/SectionWrapper";
@@ -25,6 +25,15 @@ const item = {
   visible: { opacity: 1, y: 0 },
   hidden: { opacity: 0, y: 24 },
 };
+// Letter-by-letter hero name reveal (same variants + staggerChildren pattern)
+const nameContainer = {
+  visible: { transition: { delayChildren: 0.15, staggerChildren: 0.045 } },
+  hidden: {},
+};
+const letter = {
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 320, damping: 22 } },
+  hidden: { opacity: 0, y: 28 },
+};
 
 // Keep three.js out of the initial bundle / SSR pass — it loads only on the client
 // when the hero is rendered.
@@ -37,6 +46,9 @@ export default function Page() {
   const [active, setActive] = useState<any>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [introDone, setIntroDone] = useState(false);
+  // Subtle hero parallax — scroll-linked useTransform from motion.dev docs.
+  const { scrollY } = useScroll();
+  const synthY = useTransform(scrollY, [0, 600], [0, -48]);
   const MDiv = motion.div as React.ComponentType<
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
@@ -88,9 +100,25 @@ export default function Page() {
             <div className="max-w-6xl mx-auto px-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h1 className="text-5xl md:text-6xl font-glacial-bold leading-tight">
-                    Utsav <span className="text-brand-red">Patel</span>
-                  </h1>
+                  <motion.h1
+                    className="text-5xl md:text-6xl font-glacial-bold leading-tight"
+                    initial="hidden"
+                    animate="visible"
+                    variants={nameContainer}
+                    aria-label="Utsav Patel"
+                  >
+                    {'Utsav '.split('').map((c, i) => (
+                      <motion.span key={`f-${i}`} className="inline-block" variants={letter} aria-hidden>
+                        {c === ' ' ? '\u00A0' : c}
+                      </motion.span>
+                    ))}
+                    {'Patel'.split('').map((c, i) => (
+                      <motion.span key={`l-${i}`} className="inline-block text-brand-red" variants={letter} aria-hidden>
+                        {c}
+                      </motion.span>
+                    ))}
+                  </motion.h1>
+                  <MDiv initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.5 }}>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
                     I build ML systems, NLP pipelines, quantitative models and playful, animated web experiences —
                     currently an MS in Data Science &amp; Quantitative Economics at Fordham, previously CS at IIT Palakkad.
@@ -98,7 +126,9 @@ export default function Page() {
                     It&apos;s polyphonic: use up to 5 fingers for chords on mobile, or right-click to hold notes on desktop.
                     Keep scrolling to see more.
                   </p>
-                  <div className="mt-8 flex items-center gap-3 text-black/60 font-glacial">
+                  </MDiv>
+                  <MDiv initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.95, duration: 0.5 }}
+                  className="mt-8 flex items-center gap-3 text-black/60 font-glacial">
                     <MDiv
                       animate={{ y: [0, 8, 0] }}
                       transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -108,9 +138,11 @@ export default function Page() {
                       ↓
                     </MDiv>
                     <span className="text-sm tracking-wide uppercase">Scroll to explore</span>
-                  </div>
+                  </MDiv>
                 </div>
-                <SynthPad />
+                <motion.div style={{ y: synthY }}>
+                  <SynthPad />
+                </motion.div>
               </div>
             </div>
           </header>
@@ -295,13 +327,22 @@ export default function Page() {
             {/* Contact */}
             <SectionDivider title="Contact Me" gap={60} multiplier={0.8} id="contact" />
             <SectionWrapper>
-              <h2 className="text-2xl font-glacial mb-4 text-center">Hit me up, I don't bite</h2>
-                <div className="rounded-2xl p-8 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl mx-auto font-glacial contact-links space-y-1">
+              <MDiv
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                variants={list}
+              >
+                <MDiv variants={item}>
+                  <h2 className="text-2xl font-glacial mb-4 text-center">Hit me up, I don't bite</h2>
+                </MDiv>
+                <MDiv variants={item} className="rounded-2xl p-8 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl mx-auto font-glacial contact-links space-y-1">
                   <p>Email: <a href="mailto:patelutsav257@gmail.com" className="text-brand-red hover:underline">patelutsav257@gmail.com</a></p>
                   <p>LinkedIn: <a href="https://www.linkedin.com/in/utsav-patel-478664223/" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">utsav-patel</a></p>
                   <p>GitHub: <a href="https://github.com/utsavp257" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">github.com/utsavp257</a></p>
                   <p>Instagram: <a href="https://www.instagram.com/_utsxv.bt/" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">@_utsxv.bt</a></p>
-                </div>
+                </MDiv>
+              </MDiv>
             </SectionWrapper>
 
             <footer className="py-12 mt-4 border-t border-black/10 text-center text-sm text-black/50 font-glacial tracking-wide">© {new Date().getFullYear()} Utsav Patel</footer>
