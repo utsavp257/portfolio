@@ -63,7 +63,7 @@ export default function ProjectModal({
       >
         {/* Backdrop */}
         <MDiv
-          className="absolute inset-0 bg-black/45"
+          className="absolute inset-0 bg-black/45 backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -84,7 +84,7 @@ export default function ProjectModal({
             {(showContent || closing) && (
               <MDiv
                 key={project.id}
-                className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative"
+                className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative font-glacial"
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 6 }}
@@ -92,7 +92,7 @@ export default function ProjectModal({
               >
                 {/* Title */}
                 <MDiv
-                  className="text-2xl font-bold"
+                  className="text-2xl font-glacial-bold"
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 6 }}
@@ -112,7 +112,7 @@ export default function ProjectModal({
                   {project.tags.map((t: string) => (
                     <span
                       key={t}
-                      className="text-xs px-2 py-1 rounded-full bg-brand-red/10 text-brand-black border border-brand-red/20"
+                      className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
                     >
                       {t}
                     </span>

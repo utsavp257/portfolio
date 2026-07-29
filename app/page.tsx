@@ -105,7 +105,7 @@ export default function Page() {
             <SectionWrapper>
               <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 200, damping: 10, mass: 0.8 }}
@@ -116,7 +116,7 @@ export default function Page() {
                   Processing, Cryptography, Big Data Lab, Computational Methods and Applications</p>
                 </MDiv>
                 <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -132,7 +132,7 @@ export default function Page() {
             <SectionWrapper>
               <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -146,7 +146,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -159,7 +159,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -172,7 +172,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -192,7 +192,7 @@ export default function Page() {
             <SectionWrapper>
               <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
                 <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -201,7 +201,7 @@ export default function Page() {
                   <p className="text-sm mt-2">C++, Python, Java, C, Rust, Dart, JavaScript, TypeScript, C#, SQL</p>
                 </MDiv>
                 <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -210,7 +210,7 @@ export default function Page() {
                   <p className="text-sm mt-2">Next.js, React, Node.js, Express.js, FastAPI, Flask, Django, .NET, Flutter, Tailwind CSS, Prisma, PostgreSQL, MongoDB, Docker, GCP, Tableau</p>
                 </MDiv>
                 <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
@@ -244,7 +244,7 @@ export default function Page() {
             <SectionDivider title="Contact Me" gap={60} multiplier={0.8} id="contact" />
             <SectionWrapper>
               <h2 className="text-2xl font-glacial mb-4 text-center">Hit me up, I don't bite</h2>
-                <div className="rounded-2xl p-8 bg-white border border-black/10 shadow-soft w-full max-w-3xl mx-auto font-glacial">
+                <div className="rounded-2xl p-8 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl mx-auto font-glacial contact-links space-y-1">
                   <p>Email: <a href="mailto:patelutsav257@gmail.com" className="text-brand-red hover:underline">patelutsav257@gmail.com</a></p>
                   <p>LinkedIn: <a href="https://www.linkedin.com/in/utsav-patel-478664223/" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">utsav-patel</a></p>
                   <p>GitHub: <a href="https://github.com/utsavp257" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">github.com/utsavp257</a></p>
@@ -252,7 +252,7 @@ export default function Page() {
                 </div>
             </SectionWrapper>
 
-            <footer className="py-12 text-center text-sm text-black/60 font-glacial">© {new Date().getFullYear()} Utsav Patel</footer>
+            <footer className="py-12 mt-4 border-t border-black/10 text-center text-sm text-black/50 font-glacial tracking-wide">© {new Date().getFullYear()} Utsav Patel</footer>
           </div>
         </motion.div>
       )}

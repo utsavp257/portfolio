@@ -90,13 +90,18 @@ export default function SectionDivider({
     <div
       id={id}
       className="section-divider relative w-full h-24 overflow-hidden"
-      style={{ backgroundColor: "#b91c1c" }}
+      style={{ backgroundColor: "var(--brand-red)" }}
     >
       {/* Infinite scrolling text — transformed via ref, no React re-render */}
       <div
         ref={textRef}
-        className="divider-text absolute top-1/2 left-0 flex whitespace-nowrap text-5xl font-extrabold uppercase tracking-wider will-change-transform"
-        style={{ transform: "translate3d(0, -50%, 0)", color: "#c4c4c4" }}
+        className="divider-text absolute top-1/2 left-0 flex whitespace-nowrap text-5xl uppercase will-change-transform"
+        style={{
+          transform: "translate3d(0, -50%, 0)",
+          color: "rgba(255,255,255,0.42)",
+          fontFamily: "var(--intro-font)",
+          letterSpacing: "0.06em",
+        }}
       >
         {/* Two copies for seamless looping */}
         <span className="flex">
