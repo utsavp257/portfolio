@@ -22,7 +22,7 @@ export default function ProjectCard({
   const layoutTransition = {
     y: { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 },
     scale: { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 },
-    layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+    layout: { duration: 0.5, ease: [0.65, 0, 0.35, 1] },
   };
 
   return (
@@ -46,7 +46,16 @@ export default function ProjectCard({
       style={{ perspective: 1200, willChange: 'transform' }}
       transition={layoutTransition}
     >
-      <div className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 flex flex-col font-glacial">
+      {/* Tile hides while its panel is open; reappears once the surface lands */}
+      <div
+        className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 flex flex-col font-glacial"
+        style={{
+          opacity: isActive && isModalOpen ? 0 : 1,
+          transition: isActive || isModalOpen
+            ? 'opacity 0.15s ease 0.45s, box-shadow 0.3s, border-color 0.3s'
+            : 'opacity 0.1s ease, box-shadow 0.3s, border-color 0.3s',
+        }}
+      >
         {/* Title — shared element, morphs into the panel heading */}
         <MDiv layout className="text-lg font-glacial-bold leading-snug">
           {project.title}

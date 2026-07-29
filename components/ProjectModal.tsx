@@ -47,7 +47,7 @@ export default function ProjectModal({
   >;
 
   // No-overshoot tween: the surface glides open/closed without bouncing text.
-  const layoutTransition = { layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } };
+  const layoutTransition = { layout: { duration: 0.5, ease: [0.65, 0, 0.35, 1] } };
 
   // Non-shared body: cross-fades in after the surface morph lands.
   const bodyList = {
@@ -65,7 +65,7 @@ export default function ProjectModal({
       <MDiv
         className="fixed inset-0 z-50 flex items-center justify-center"
         initial={{ opacity: 1 }}
-        exit={{ opacity: 0, transition: { duration: 0.25, delay: 0.18 } }}
+        exit={{ opacity: 0, transition: { duration: 0.2, delay: 0.35 } }}
         onClick={onClose}
       >
         {/* Scrim */}
@@ -73,7 +73,7 @@ export default function ProjectModal({
           className="absolute inset-0 bg-black backdrop-blur-[2px]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.72 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.35, delay: 0.05 } }}
           transition={{ duration: 0.18 }}
         />
 
@@ -85,6 +85,7 @@ export default function ProjectModal({
           aria-modal="true"
           aria-label={project.title}
           onClick={(e) => e.stopPropagation()}
+          exit={{ opacity: 1 }} /* stay opaque while gliding home */
           className="relative z-10 max-w-3xl w-[92%] rounded-2xl bg-white p-8 shadow-2xl border border-black/10 font-glacial overflow-hidden"
           style={{ willChange: 'transform' }}
           transition={layoutTransition}

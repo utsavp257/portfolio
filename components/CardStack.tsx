@@ -19,7 +19,7 @@ import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
  */
 const PIN_TOP = 88; // px below the viewport top for the first card
 const EDGE = 26; // px of card edge each buried card keeps visible
-const ARRIVAL_VH = 44; // scroll runway between card arrivals
+const ARRIVAL_VH = 58; // scroll runway between card arrivals (normal gap pre-pin)
 const DWELL_VH = 34; // how long the finished deck holds before releasing
 
 function StackedCard({
