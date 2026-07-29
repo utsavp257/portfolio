@@ -130,22 +130,48 @@ export default function ProjectModal({
                   {project.description}
                 </MDiv>
 
-                {/* GitHub link */}
-                {project.href && (
+                {/* Publication note */}
+                {project.note && (
                   <MDiv
+                    className="text-sm italic text-black/60"
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                     transition={contentTransition}
                   >
-                    <a
-                      href={project.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-4 px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
-                    >
-                      View on GitHub →
-                    </a>
+                    {project.note}
+                  </MDiv>
+                )}
+
+                {/* Links */}
+                {(project.href || project.demo) && (
+                  <MDiv
+                    className="mt-4 flex flex-wrap gap-3"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={contentTransition}
+                  >
+                    {project.demo && (
+                      <a
+                        href={project.demo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
+                      >
+                        Live demo →
+                      </a>
+                    )}
+                    {project.href && (
+                      <a
+                        href={project.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
+                      >
+                        View on GitHub →
+                      </a>
+                    )}
                   </MDiv>
                 )}
 

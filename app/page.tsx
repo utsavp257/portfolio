@@ -74,7 +74,8 @@ export default function Page() {
                     Utsav <span className="text-brand-red">Patel</span>
                   </h1>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
-                    I build ML systems, NLP pipelines and playful, animated web experiences.
+                    I build ML systems, NLP pipelines, quantitative models and playful, animated web experiences —
+                    currently an MS in Data Science &amp; Quantitative Economics at Fordham, previously CS at IIT Palakkad.
                     Tap the dot grid and move around to play it — it&apos;s a little synth (left/right changes the note, near/far changes the tone).
                     It&apos;s polyphonic: use up to 5 fingers for chords on mobile, or right-click to hold notes on desktop.
                     Keep scrolling to see more.
@@ -121,8 +122,8 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h3 className="font-glacial-bold">Master of Science, Data Science and Quant Economics - Fordham University</h3>
-                  <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: 4</p>
-                  <p className="mt-3 text-black/80">Relevant coursework: Data Mining, Financial Econometrics, Microeconomics</p>
+                  <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: 4.0</p>
+                  <p className="mt-3 text-black/80">Relevant coursework: Financial Econometrics, Microeconomics, Macroeconomics, Data Mining, Big Data</p>
                 </MDiv>
               </div>
             </SectionWrapper>
@@ -130,42 +131,57 @@ export default function Page() {
             <SectionDivider title="Experience" gap={60} multiplier={0.8} id="experience" />
             <SectionWrapper>
               <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
-                <MDiv 
+                <MDiv
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h3 className="font-glacial-bold">Software Developer Intern — E-Ring IT Solutions</h3>
+                  <h3 className="font-glacial-bold">Software Developer Intern — Stealth AI Startup, New York</h3>
+                  <p className="text-sm text-black/70 mt-2">May 2026 – Present</p>
+                  <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
+                    <li>Architected and built the platform layer for an AI-powered operational cognition system — FastAPI, async SQLModel, PostgreSQL/Neon, LangGraph, Inngest and GCP Cloud Run — with 10+ AI workflows and production services.</li>
+                    <li>Designed the team&apos;s primary developer platform: an LLM-assisted operator CLI, automated OpenAPI→TypeScript codegen, real-time SSE event pipelines, CI contract validation, secret management, monitoring and production hardening.</li>
+                    <li>Integrated 15+ external services (Google OAuth, Google Meet, Twilio, WhatsApp, Yelp AI, Resy, Merge.dev, Xero, NetSuite) behind authenticated real-time frontends serving 100+ users and ~500 daily notifications.</li>
+                  </ul>
+                </MDiv>
+                <MDiv
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h3 className="font-glacial-bold">AI Developer Intern — Stealth Startup, Palakkad</h3>
+                  <p className="text-sm text-black/70 mt-2">Jan 2025 – Apr 2025</p>
+                  <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
+                    <li>Developed an AI-powered customer engagement platform in Next.js, integrating WhatsApp Business APIs and enterprise databases for customer support and automated information access.</li>
+                    <li>Built RAG pipelines, API integrations and agent-based workflows enabling scalable business process automation across systems.</li>
+                  </ul>
+                </MDiv>
+                <MDiv
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h3 className="font-glacial-bold">Software Developer Intern — E-Ring IT Solutions, Hyderabad</h3>
                   <p className="text-sm text-black/70 mt-2">Jun 2024 – Aug 2024</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
-                    <li>Converted ActiveX/legacy UI into Classic ASP pages with Excel-like interface.</li>
-                    <li>Built a JS library to simulate spreadsheet components, collaborated with QA, and improved front-end performance.</li>
+                    <li>Modernized legacy enterprise software by converting ActiveX-based functionality into Classic ASP pages with spreadsheet-like interfaces.</li>
+                    <li>Developed features in C#, ASP.NET and JavaScript, collaborating with QA to validate releases and support production applications.</li>
                   </ul>
                 </MDiv>
-                <MDiv 
+                <MDiv
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h3 className="font-glacial-bold">Software Developer Intern — Stealth Startup</h3>
-                  <p className="text-sm text-black/70 mt-2">Jan 2025 – Mar 2025</p>
+                  <h3 className="font-glacial-bold">Beyond Work</h3>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
-                    <li>Contributed to the design and development of an agent-based platform in Next.js that streamlines various endpoints for customers.</li>
-                    <li> Integrated multiple external APIs to enhance platform functionality.</li>
-                  </ul>
-                </MDiv>
-                <MDiv 
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
-                  <h3 className="font-glacial-bold">Other Roles</h3>
-                  <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
-                    <li>Volunteered at Google Developer Group(GDG) NYC DevFest and Peace By Design: AI and Tech event.</li>
-                    <li>Led a crew of cameramen for my college fest and its various events, as well as making promo movies with a team of editors</li>
+                    <li>🏆 1st Place, GDG NYC Build with AI Hackathon — built an AI system to diagnose trees with potential illnesses.</li>
+                    <li>Volunteered at Google Developer Group (GDG) NYC DevFest and Peace By Design: AI and Tech event.</li>
+                    <li>Led a crew of cameramen for my college fest and its various events, as well as making promo movies with a team of editors.</li>
                   </ul>
                 </MDiv>
               </div>
@@ -182,7 +198,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Languages</h4>
-                  <p className="text-sm mt-2">C++, Python, C, Rust, Dart, JavaScript, TypeScript, C#, SQL, Java</p>
+                  <p className="text-sm mt-2">C++, Python, Java, C, Rust, Dart, JavaScript, TypeScript, C#, SQL</p>
                 </MDiv>
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
@@ -191,7 +207,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h4 className="font-glacial-bold">Frameworks & Tools</h4>
-                  <p className="text-sm mt-2">Next.js, Express.js, React, Node.js, Tailwind CSS, Prisma, Flutter, Flask, .NET, Django, FastAPI, PyTorch, TensorFlow, MongoDB, Tableau, Docker</p>
+                  <p className="text-sm mt-2">Next.js, React, Node.js, Express.js, FastAPI, Flask, Django, .NET, Flutter, Tailwind CSS, Prisma, PostgreSQL, MongoDB, Docker, GCP, Tableau</p>
                 </MDiv>
                 <MDiv 
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft w-full max-w-3xl cursor-pointer font-glacial"
@@ -199,8 +215,8 @@ export default function Page() {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h4 className="font-glacial-bold">Things I'm good at</h4>
-                  <p className="text-sm mt-2">NLP, Fine-grained NER, Data Analytics, Machine Learning, LLMs, DSA, Algorithms, GitHub, Database Management, Full Stack Development</p>
+                  <h4 className="font-glacial-bold">Things I&apos;m good at</h4>
+                  <p className="text-sm mt-2">Machine Learning, NLP, LLMs &amp; agent workflows (PyTorch, TensorFlow, LangChain, LangGraph, RAG, fine-tuning), quantitative modeling (GARCH, VaR, econometrics), data analytics, DSA, full-stack development</p>
                 </MDiv>
               </div>
             </SectionWrapper>
@@ -230,7 +246,8 @@ export default function Page() {
               <h2 className="text-2xl font-glacial mb-4 text-center">Hit me up, I don't bite</h2>
                 <div className="rounded-2xl p-8 bg-white border border-black/10 shadow-soft w-full max-w-3xl mx-auto font-glacial">
                   <p>Email: <a href="mailto:patelutsav257@gmail.com" className="text-brand-red hover:underline">patelutsav257@gmail.com</a></p>
-                  <p>GitHub: <a href="https://github.com/utsavp257" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">github.com/utsavp257</a></p> 
+                  <p>LinkedIn: <a href="https://www.linkedin.com/in/utsav-patel-478664223/" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">utsav-patel</a></p>
+                  <p>GitHub: <a href="https://github.com/utsavp257" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">github.com/utsavp257</a></p>
                   <p>Instagram: <a href="https://www.instagram.com/_utsxv.bt/" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">@_utsxv.bt</a></p>
                 </div>
             </SectionWrapper>

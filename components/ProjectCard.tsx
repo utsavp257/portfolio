@@ -40,6 +40,11 @@ export default function ProjectCard({
         {/* Title */}
         <MDiv className="text-xl font-semibold" layout>
           {project.title}
+          {project.demo && (
+            <span className="ml-2 align-middle text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-brand-red text-white">
+              Live
+            </span>
+          )}
         </MDiv>
 
         {/* Tags */}
