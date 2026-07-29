@@ -14,6 +14,7 @@ import SpringCursor from '../components/SpringCursor';
 import DockNav from '../components/DockNav';
 import Typewriter from '../components/Typewriter';
 import RollingNumber from '../components/RollingNumber';
+import CardStack from '../components/CardStack';
 
 // Scroll-triggered reveal variants — the whileInView + staggered-children
 // pattern from motion.dev (https://motion.dev/docs/react-scroll-animations,
@@ -106,7 +107,6 @@ export default function Page() {
                       phrases={[
                         'ML systems.',
                         'NLP pipelines.',
-                        'GARCH models.',
                         'agent workflows.',
                         'little synths.',
                       ]}
@@ -180,21 +180,10 @@ export default function Page() {
             </SectionWrapper>
 
             <SectionDivider title="Experience" gap={60} multiplier={0.8} id="experience" />
-            <SectionWrapper>
-              <MDiv
-                className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.15 }}
-                variants={list}
-              >
-                <MDiv
-                  variants={item}
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
+            <div className="w-full flex justify-center py-16">
+              <div className="max-w-6xl w-full px-6">
+              <CardStack>
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial">
                   <h3 className="font-glacial-bold">Software Developer Intern — Stealth AI Startup, New York</h3>
                   <p className="text-sm text-black/70 mt-2">May 2026 – Present</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
@@ -202,51 +191,34 @@ export default function Page() {
                     <li>Designed the team&apos;s primary developer platform: an LLM-assisted operator CLI, automated OpenAPI→TypeScript codegen, real-time SSE event pipelines, CI contract validation, secret management, monitoring and production hardening.</li>
                     <li>Integrated 15+ external services (Google OAuth, Google Meet, Twilio, WhatsApp, Yelp AI, Resy, Merge.dev, Xero, NetSuite) behind authenticated real-time frontends serving 100+ users and ~500 daily notifications.</li>
                   </ul>
-                </MDiv>
-                <MDiv
-                  variants={item}
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
+                </div>
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial">
                   <h3 className="font-glacial-bold">AI Developer Intern — Stealth Startup, Palakkad</h3>
                   <p className="text-sm text-black/70 mt-2">Jan 2025 – Apr 2025</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
                     <li>Developed an AI-powered customer engagement platform in Next.js, integrating WhatsApp Business APIs and enterprise databases for customer support and automated information access.</li>
                     <li>Built RAG pipelines, API integrations and agent-based workflows enabling scalable business process automation across systems.</li>
                   </ul>
-                </MDiv>
-                <MDiv
-                  variants={item}
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
+                </div>
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial">
                   <h3 className="font-glacial-bold">Software Developer Intern — E-Ring IT Solutions, Hyderabad</h3>
                   <p className="text-sm text-black/70 mt-2">Jun 2024 – Aug 2024</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
                     <li>Modernized legacy enterprise software by converting ActiveX-based functionality into Classic ASP pages with spreadsheet-like interfaces.</li>
                     <li>Developed features in C#, ASP.NET and JavaScript, collaborating with QA to validate releases and support production applications.</li>
                   </ul>
-                </MDiv>
-                <MDiv
-                  variants={item}
-                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
-                >
+                </div>
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial">
                   <h3 className="font-glacial-bold">Beyond Work</h3>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
                     <li>🏆 1st Place, GDG NYC Build with AI Hackathon — built an AI system to diagnose trees with potential illnesses.</li>
                     <li>Volunteered at Google Developer Group (GDG) NYC DevFest and Peace By Design: AI and Tech event.</li>
                     <li>Led a crew of cameramen for my college fest and its various events, as well as making promo movies with a team of editors.</li>
                   </ul>
-                </MDiv>
-              </MDiv>
-            </SectionWrapper>
+                </div>
+              </CardStack>
+              </div>
+            </div>
 
             {/* Skills */}
             <SectionDivider title="Skills" gap={60} multiplier={0.8} id="skills" />

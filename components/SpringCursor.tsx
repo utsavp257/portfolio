@@ -14,8 +14,10 @@ export default function SpringCursor() {
 
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
-  const springX = useSpring(x, { stiffness: 400, damping: 35 });
-  const springY = useSpring(y, { stiffness: 400, damping: 35 });
+  // Tight tracking: high stiffness keeps the dot glued to the pointer with
+  // just a hint of trail.
+  const springX = useSpring(x, { stiffness: 1200, damping: 60, mass: 0.4 });
+  const springY = useSpring(y, { stiffness: 1200, damping: 60, mass: 0.4 });
 
   useEffect(() => {
     // Only take over on fine pointers (mouse/trackpad), respecting reduced motion.
