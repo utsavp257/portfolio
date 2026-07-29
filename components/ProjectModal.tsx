@@ -1,8 +1,14 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, MotionProps, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 
+/**
+ * Card-flip modal: the tile morphs to the center of the screen (shared
+ * layoutId) while rotating 180° — the tile front turns away and the "back of
+ * the card", carrying the full details, comes into view. Closing flips it
+ * back into the grid.
+ */
 export default function ProjectModal({
   project,
   onClose,
@@ -10,25 +16,18 @@ export default function ProjectModal({
   project: any;
   onClose: () => void;
 }) {
-  const [showContent, setShowContent] = useState(false);
-  const [closing, setClosing] = useState(false);
-
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') handleClose();
+      if (e.key === 'Escape') onClose();
     }
     document.addEventListener('keydown', onKey);
 
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // small delay to allow layout animation first
-    const timeout = setTimeout(() => setShowContent(true), 50);
-
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
-      clearTimeout(timeout);
     };
   }, [onClose]);
 
@@ -38,19 +37,20 @@ export default function ProjectModal({
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
 
-  const layoutTransition = { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 };
-  const contentTransition = { duration: 0.16, ease: [0.3, 0.7, 0.25, 1] };
+  const flipTransition = { type: 'spring', stiffness: 170, damping: 22, mass: 0.9 };
 
-  const handleClose = () => {
-    setClosing(true);
-    setShowContent(false);
-
-    // wait for content exit before closing modal
-    setTimeout(() => {
-      setClosing(false);
-      onClose();
-    }, 180); // match content transition duration
-  };
+  const tagChips = (
+    <>
+      {project.tags.map((t: string) => (
+        <span
+          key={t}
+          className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
+        >
+          {t}
+        </span>
+      ))}
+    </>
+  );
 
   return createPortal(
     <AnimatePresence>
@@ -59,7 +59,8 @@ export default function ProjectModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={handleClose}
+        onClick={onClose}
+        style={{ perspective: 1600 }}
       >
         {/* Backdrop */}
         <MDiv
@@ -70,122 +71,90 @@ export default function ProjectModal({
           transition={{ duration: 0.16 }}
         />
 
-        {/* LayoutId card */}
+        {/* Flipping card: starts as the tile (front showing), lands as the
+            details (back showing). */}
         <MDiv
           layoutId={`card-${project.id}`}
           layout
           onClick={(e) => e.stopPropagation()}
-          className="relative z-10 max-w-3xl w-[92%] rounded-2xl overflow-hidden"
-          style={{ willChange: 'transform' }}
-          transition={layoutTransition}
+          className="relative z-10 max-w-3xl w-[92%]"
+          style={{ transformStyle: 'preserve-3d', willChange: 'transform' }}
+          initial={{ rotateY: 180 }}
+          animate={{ rotateY: 0 }}
+          exit={{ rotateY: 180 }}
+          transition={flipTransition}
         >
-          {/* Inner content */}
-          <AnimatePresence>
-            {(showContent || closing) && (
-              <MDiv
-                key={project.id}
-                className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative font-glacial"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 6 }}
-                transition={contentTransition}
-              >
-                {/* Title */}
-                <MDiv
-                  className="text-2xl font-glacial-bold"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
-                >
-                  {project.title}
-                </MDiv>
+          {/* BACK of the card — the details (reads correctly once flipped) */}
+          <div
+            className="bg-white rounded-2xl p-8 shadow-2xl border border-black/10 flex flex-col gap-4 relative font-glacial"
+            style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+          >
+            <div className="text-2xl font-glacial-bold">{project.title}</div>
 
-                {/* Tags */}
-                <MDiv
-                  className="flex gap-2 flex-wrap"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
-                >
-                  {project.tags.map((t: string) => (
-                    <span
-                      key={t}
-                      className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </MDiv>
+            <div className="flex gap-2 flex-wrap">{tagChips}</div>
 
-                {/* Long description */}
-                <MDiv
-                  className="text-sm text-black/75 leading-relaxed"
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={contentTransition}
-                >
-                  {project.description}
-                </MDiv>
+            <div className="text-sm text-black/75 leading-relaxed">{project.description}</div>
 
-                {/* Publication note */}
-                {project.note && (
-                  <MDiv
-                    className="text-sm italic text-black/60"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={contentTransition}
-                  >
-                    {project.note}
-                  </MDiv>
-                )}
-
-                {/* Links */}
-                {(project.href || project.demo) && (
-                  <MDiv
-                    className="mt-4 flex flex-wrap gap-3"
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={contentTransition}
-                  >
-                    {project.demo && (
-                      <a
-                        href={project.demo}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
-                      >
-                        Live demo →
-                      </a>
-                    )}
-                    {project.href && (
-                      <a
-                        href={project.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
-                      >
-                        View on GitHub →
-                      </a>
-                    )}
-                  </MDiv>
-                )}
-
-                {/* Close button */}
-                <button
-                  onClick={handleClose}
-                  aria-label="Close project details"
-                  className="absolute top-4 right-4 px-3 py-2 rounded-md border border-black/10 hover:bg-black/5"
-                >
-                  ✕
-                </button>
-              </MDiv>
+            {project.note && (
+              <div className="text-sm italic text-black/60">{project.note}</div>
             )}
-          </AnimatePresence>
+
+            {(project.href || project.demo) && (
+              <div className="mt-4 flex flex-wrap gap-3">
+                {project.demo && (
+                  <a
+                    href={project.demo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 rounded-xl bg-brand-red hover:bg-brand-red/90 transition-colors text-sm font-medium text-white"
+                  >
+                    Live demo →
+                  </a>
+                )}
+                {project.href && (
+                  <a
+                    href={project.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4 py-2 rounded-xl border border-black/15 hover:bg-black/5 transition-colors text-sm font-medium text-black/80"
+                  >
+                    View on GitHub →
+                  </a>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              aria-label="Close project details"
+              className="absolute top-4 right-4 px-3 py-2 rounded-md border border-black/10 hover:bg-black/5"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* FRONT of the card — a replica of the tile, visible during the
+              first half of the flip, then hidden by backface culling. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-white rounded-2xl p-6 border border-black/10 shadow-2xl flex flex-col font-glacial overflow-hidden"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+          >
+            <div className="text-lg font-glacial-bold leading-snug">
+              {project.title}
+              {project.demo && (
+                <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
+                  Live
+                </span>
+              )}
+            </div>
+            <div className="mt-3 flex gap-1.5 flex-wrap">{tagChips}</div>
+            <div className="text-sm text-black/70 mt-4 leading-relaxed">{project.short}</div>
+          </div>
         </MDiv>
       </MDiv>
     </AnimatePresence>,
