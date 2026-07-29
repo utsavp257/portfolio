@@ -377,3 +377,15 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .tw-caret { animation: none; }
 }
+
+/* Mobile intro: keep the three lines together instead of spread over the
+   full screen height */
+@media (max-width: 767px) {
+  .landing-words {
+    justify-content: center;
+    gap: 1.25rem;
+  }
+  .landing-words .line {
+    height: auto !important;
+  }
+}
