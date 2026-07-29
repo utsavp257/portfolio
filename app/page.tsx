@@ -183,7 +183,7 @@ export default function Page() {
             <div className="w-full flex justify-center py-16">
               <div className="max-w-6xl w-full px-6">
               <CardStack>
-                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem] md:flex md:flex-col md:justify-center">
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
                   <h3 className="font-glacial-bold">Software Developer Intern — Stealth AI Startup, New York</h3>
                   <p className="text-sm text-black/70 mt-2">May 2026 – Present</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
@@ -192,7 +192,7 @@ export default function Page() {
                     <li>Integrated 15+ external services (Google OAuth, Google Meet, Twilio, WhatsApp, Yelp AI, Resy, Merge.dev, Xero, NetSuite) behind authenticated real-time frontends serving 100+ users and ~500 daily notifications.</li>
                   </ul>
                 </div>
-                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem] md:flex md:flex-col md:justify-center">
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
                   <h3 className="font-glacial-bold">AI Developer Intern — Stealth Startup, Palakkad</h3>
                   <p className="text-sm text-black/70 mt-2">Jan 2025 – Apr 2025</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
@@ -200,7 +200,7 @@ export default function Page() {
                     <li>Built RAG pipelines, API integrations and agent-based workflows enabling scalable business process automation across systems.</li>
                   </ul>
                 </div>
-                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem] md:flex md:flex-col md:justify-center">
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
                   <h3 className="font-glacial-bold">Software Developer Intern — E-Ring IT Solutions, Hyderabad</h3>
                   <p className="text-sm text-black/70 mt-2">Jun 2024 – Aug 2024</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
@@ -208,7 +208,7 @@ export default function Page() {
                     <li>Developed features in C#, ASP.NET and JavaScript, collaborating with QA to validate releases and support production applications.</li>
                   </ul>
                 </div>
-                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem] md:flex md:flex-col md:justify-center">
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
                   <h3 className="font-glacial-bold">Beyond Work</h3>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
                     <li>🏆 1st Place, GDG NYC Build with AI Hackathon — built an AI system to diagnose trees with potential illnesses.</li>

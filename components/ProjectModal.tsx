@@ -51,11 +51,12 @@ export default function ProjectModal({
   // Non-shared body: cross-fades in after the surface morph lands.
   const bodyList = {
     visible: { opacity: 1, transition: { delayChildren: 0.12, staggerChildren: 0.05 } },
-    hidden: { opacity: 0 },
+    // vanish immediately on close so the surface can shrink back clean
+    hidden: { opacity: 0, transition: { duration: 0.06 } },
   };
   const bodyItem = {
     visible: { opacity: 1, y: 0 },
-    hidden: { opacity: 0, y: 8 },
+    hidden: { opacity: 0, y: 8, transition: { duration: 0.06 } },
   };
 
   return createPortal(
@@ -63,7 +64,7 @@ export default function ProjectModal({
       <MDiv
         className="fixed inset-0 z-50 flex items-center justify-center"
         initial={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        exit={{ opacity: 0, transition: { duration: 0.25, delay: 0.18 } }}
         onClick={onClose}
       >
         {/* Scrim */}
@@ -83,7 +84,7 @@ export default function ProjectModal({
           aria-modal="true"
           aria-label={project.title}
           onClick={(e) => e.stopPropagation()}
-          className="relative z-10 max-w-3xl w-[92%] rounded-2xl bg-white p-8 shadow-2xl border border-black/10 font-glacial"
+          className="relative z-10 max-w-3xl w-[92%] rounded-2xl bg-white p-8 shadow-2xl border border-black/10 font-glacial overflow-hidden"
           style={{ willChange: 'transform' }}
           transition={layoutTransition}
         >
