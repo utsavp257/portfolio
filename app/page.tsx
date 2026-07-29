@@ -10,6 +10,10 @@ import LandingIntro from '../components/LandingIntro';
 import SectionDivider from '../components/SectionDivider';
 import SectionWrapper from "../components/SectionWrapper";
 import ScrollProgress from '../components/ScrollProgress';
+import SpringCursor from '../components/SpringCursor';
+import DockNav from '../components/DockNav';
+import Typewriter from '../components/Typewriter';
+import RollingNumber from '../components/RollingNumber';
 
 // Scroll-triggered reveal variants — the whileInView + staggered-children
 // pattern from motion.dev (https://motion.dev/docs/react-scroll-animations,
@@ -24,15 +28,6 @@ const list = {
 const item = {
   visible: { opacity: 1, y: 0 },
   hidden: { opacity: 0, y: 24 },
-};
-// Letter-by-letter hero name reveal (same variants + staggerChildren pattern)
-const nameContainer = {
-  visible: { transition: { delayChildren: 0.15, staggerChildren: 0.045 } },
-  hidden: {},
-};
-const letter = {
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 320, damping: 22 } },
-  hidden: { opacity: 0, y: 28 },
 };
 
 // Keep three.js out of the initial bundle / SSR pass — it loads only on the client
@@ -88,6 +83,8 @@ export default function Page() {
       {introDone && (
         <>
         <ScrollProgress />
+        <SpringCursor />
+        <DockNav />
         <motion.div
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
@@ -100,28 +97,24 @@ export default function Page() {
             <div className="max-w-6xl mx-auto px-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <motion.h1
-                    className="text-5xl md:text-6xl font-glacial-bold leading-tight"
-                    initial="hidden"
-                    animate="visible"
-                    variants={nameContainer}
-                    aria-label="Utsav Patel"
-                  >
-                    {'Utsav '.split('').map((c, i) => (
-                      <motion.span key={`f-${i}`} className="inline-block" variants={letter} aria-hidden>
-                        {c === ' ' ? '\u00A0' : c}
-                      </motion.span>
-                    ))}
-                    {'Patel'.split('').map((c, i) => (
-                      <motion.span key={`l-${i}`} className="inline-block text-brand-red" variants={letter} aria-hidden>
-                        {c}
-                      </motion.span>
-                    ))}
-                  </motion.h1>
+                  <h1 className="text-5xl md:text-6xl font-glacial-bold leading-tight">
+                    Utsav <span className="text-brand-red">Patel</span>
+                  </h1>
+                  <p className="mt-3 text-xl md:text-2xl font-glacial-bold text-black/80">
+                    I build{' '}
+                    <Typewriter
+                      phrases={[
+                        'ML systems.',
+                        'NLP pipelines.',
+                        'GARCH models.',
+                        'agent workflows.',
+                        'little synths.',
+                      ]}
+                    />
+                  </p>
                   <MDiv initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.5 }}>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
-                    I build ML systems, NLP pipelines, quantitative models and playful, animated web experiences —
-                    currently an MS in Data Science &amp; Quantitative Economics at Fordham, previously CS at IIT Palakkad.
+                    Currently an MS in Data Science &amp; Quantitative Economics at Fordham, previously CS at IIT Palakkad.
                     Tap the dot grid and move around to play it — it&apos;s a little synth (left/right changes the note, near/far changes the tone).
                     It&apos;s polyphonic: use up to 5 fingers for chords on mobile, or right-click to hold notes on desktop.
                     Keep scrolling to see more.
@@ -168,7 +161,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 200, damping: 10, mass: 0.8 }}
                 >
                   <h3 className="font-glacial-bold">Bachelor of Technology, Computer Science - IIT Palakkad</h3>
-                  <p className="text-sm text-black/70">Jul 2021 – May 2025 • CGPA: 8.77</p>
+                  <p className="text-sm text-black/70">Jul 2021 – May 2025 • CGPA: <RollingNumber value="8.77" /></p>
                   <p className="mt-3 text-black/80">Relevant coursework: Data Structures and Algorithms, Artificial Intelligence, Design and Analysis of Algorithms, Natural Language
                   Processing, Cryptography, Big Data Lab, Computational Methods and Applications</p>
                 </MDiv>
@@ -180,7 +173,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h3 className="font-glacial-bold">Master of Science, Data Science and Quant Economics - Fordham University</h3>
-                  <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: 4.0</p>
+                  <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: <RollingNumber value="4.0" /></p>
                   <p className="mt-3 text-black/80">Relevant coursework: Financial Econometrics, Microeconomics, Macroeconomics, Data Mining, Big Data</p>
                 </MDiv>
               </MDiv>

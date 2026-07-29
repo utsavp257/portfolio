@@ -365,3 +365,14 @@ html, body {
 :focus-visible { outline: 2px solid var(--brand-red); outline-offset: 2px; }
 
 .contact-links p { padding: 2px 0; }
+
+/* Typewriter caret blink */
+.tw-caret {
+  animation: tw-blink 1.05s steps(1) infinite;
+}
+@keyframes tw-blink {
+  50% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tw-caret { animation: none; }
+}
