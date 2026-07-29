@@ -9,6 +9,22 @@ import { motion, AnimatePresence, MotionProps } from 'framer-motion';
 import LandingIntro from '../components/LandingIntro';
 import SectionDivider from '../components/SectionDivider';
 import SectionWrapper from "../components/SectionWrapper";
+import ScrollProgress from '../components/ScrollProgress';
+
+// Scroll-triggered reveal variants — the whileInView + staggered-children
+// pattern from motion.dev (https://motion.dev/docs/react-scroll-animations,
+// https://motion.dev/docs/react-animation#variants).
+const list = {
+  visible: {
+    opacity: 1,
+    transition: { when: 'beforeChildren', staggerChildren: 0.12 },
+  },
+  hidden: { opacity: 0 },
+};
+const item = {
+  visible: { opacity: 1, y: 0 },
+  hidden: { opacity: 0, y: 24 },
+};
 
 // Keep three.js out of the initial bundle / SSR pass — it loads only on the client
 // when the hero is rendered.
@@ -58,6 +74,8 @@ export default function Page() {
       {!introDone && <LandingIntro onFinish={() => setIntroDone(true)} />}
 
       {introDone && (
+        <>
+        <ScrollProgress />
         <motion.div
           initial={{ opacity: 0, y: 80 }}
           animate={{ opacity: 1, y: 0 }}
@@ -103,8 +121,15 @@ export default function Page() {
             {/* Education */}
             <SectionDivider title="Education" gap={60} multiplier={0.8} id="education" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
+              <MDiv
+                className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.15 }}
+                variants={list}
+              >
                 <MDiv 
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -116,6 +141,7 @@ export default function Page() {
                   Processing, Cryptography, Big Data Lab, Computational Methods and Applications</p>
                 </MDiv>
                 <MDiv 
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -125,13 +151,20 @@ export default function Page() {
                   <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: 4.0</p>
                   <p className="mt-3 text-black/80">Relevant coursework: Financial Econometrics, Microeconomics, Macroeconomics, Data Mining, Big Data</p>
                 </MDiv>
-              </div>
+              </MDiv>
             </SectionWrapper>
 
             <SectionDivider title="Experience" gap={60} multiplier={0.8} id="experience" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
+              <MDiv
+                className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.15 }}
+                variants={list}
+              >
                 <MDiv
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -146,6 +179,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -159,6 +193,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -172,6 +207,7 @@ export default function Page() {
                   </ul>
                 </MDiv>
                 <MDiv
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -184,14 +220,21 @@ export default function Page() {
                     <li>Led a crew of cameramen for my college fest and its various events, as well as making promo movies with a team of editors.</li>
                   </ul>
                 </MDiv>
-              </div>
+              </MDiv>
             </SectionWrapper>
 
             {/* Skills */}
             <SectionDivider title="Skills" gap={60} multiplier={0.8} id="skills" />
             <SectionWrapper>
-              <div className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12">
+              <MDiv
+                className="flex flex-col items-center justify-center md:min-h-screen space-y-8 md:space-y-12"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.15 }}
+                variants={list}
+              >
                 <MDiv 
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -201,6 +244,7 @@ export default function Page() {
                   <p className="text-sm mt-2">C++, Python, Java, C, Rust, Dart, JavaScript, TypeScript, C#, SQL</p>
                 </MDiv>
                 <MDiv 
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -210,6 +254,7 @@ export default function Page() {
                   <p className="text-sm mt-2">Next.js, React, Node.js, Express.js, FastAPI, Flask, Django, .NET, Flutter, Tailwind CSS, Prisma, PostgreSQL, MongoDB, Docker, GCP, Tableau</p>
                 </MDiv>
                 <MDiv 
+                  variants={item}
                   className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
                   whileHover={{ y: -6, scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
@@ -218,7 +263,7 @@ export default function Page() {
                   <h4 className="font-glacial-bold">Things I&apos;m good at</h4>
                   <p className="text-sm mt-2">Machine Learning, NLP, LLMs &amp; agent workflows (PyTorch, TensorFlow, LangChain, LangGraph, RAG, fine-tuning), quantitative modeling (GARCH, VaR, econometrics), data analytics, DSA, full-stack development</p>
                 </MDiv>
-              </div>
+              </MDiv>
             </SectionWrapper>
 
             {/* Experience */}
@@ -227,17 +272,24 @@ export default function Page() {
             {/* Projects */}
             <SectionDivider title="Projects" gap={60} multiplier={0.8} id="projects" />
             <SectionWrapper>
-              <div className="grid md:grid-cols-3 gap-6">
+              <MDiv
+                className="grid md:grid-cols-3 gap-6"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.1 }}
+                variants={list}
+              >
                 {projects.map((p) => (
-                  <ProjectCard 
-                    key={p.id} 
-                    project={p} 
-                    onOpen={handleOpen} 
-                    isModalOpen={modalOpen}
-                    isActive={active?.id === p.id}
-                  />
+                  <MDiv key={p.id} variants={item}>
+                    <ProjectCard
+                      project={p}
+                      onOpen={handleOpen}
+                      isModalOpen={modalOpen}
+                      isActive={active?.id === p.id}
+                    />
+                  </MDiv>
                 ))}
-              </div>
+              </MDiv>
             </SectionWrapper>
 
             {/* Contact */}
@@ -255,6 +307,7 @@ export default function Page() {
             <footer className="py-12 mt-4 border-t border-black/10 text-center text-sm text-black/50 font-glacial tracking-wide">© {new Date().getFullYear()} Utsav Patel</footer>
           </div>
         </motion.div>
+        </>
       )}
 
       {/* Modal */}
