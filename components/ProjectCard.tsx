@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { motion, MotionProps } from 'framer-motion';
 
 export default function ProjectCard({
@@ -16,26 +16,6 @@ export default function ProjectCard({
   const MDiv = motion.div as React.ComponentType<
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
-
-  // The tile's content should only fade back in once the returning surface
-  // has fully landed. The open flags flip off instantly on close, so we
-  // remember "just closed" ourselves to time the delayed reveal.
-  const open = isActive && isModalOpen;
-  const wasOpen = useRef(false);
-  const [justClosed, setJustClosed] = useState(false);
-  useEffect(() => {
-    if (open) {
-      wasOpen.current = true;
-      setJustClosed(false);
-      return;
-    }
-    if (wasOpen.current) {
-      wasOpen.current = false;
-      setJustClosed(true);
-      const t = setTimeout(() => setJustClosed(false), 1100);
-      return () => clearTimeout(t);
-    }
-  }, [open]);
 
   // Springy gestures, but a no-overshoot tween for the expand/collapse morph
   // so text never bounces.
@@ -70,10 +50,9 @@ export default function ProjectCard({
       <div
         className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 flex flex-col font-glacial"
         style={{
-          opacity: open ? 0 : 1,
-          // hide fast on open; fade in only after the surface has landed
-          transition: justClosed
-            ? 'opacity 0.35s ease 0.5s, box-shadow 0.3s, border-color 0.3s'
+          opacity: isActive && isModalOpen ? 0 : 1,
+          transition: isActive || isModalOpen
+            ? 'opacity 0.15s ease 0.45s, box-shadow 0.3s, border-color 0.3s'
             : 'opacity 0.1s ease, box-shadow 0.3s, border-color 0.3s',
         }}
       >
