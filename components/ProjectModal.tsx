@@ -46,7 +46,8 @@ export default function ProjectModal({
     React.AnchorHTMLAttributes<HTMLAnchorElement> & MotionProps
   >;
 
-  const layoutTransition = { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 };
+  // No-overshoot tween: the surface glides open/closed without bouncing text.
+  const layoutTransition = { layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } };
 
   // Non-shared body: cross-fades in after the surface morph lands.
   const bodyList = {
@@ -88,34 +89,32 @@ export default function ProjectModal({
           style={{ willChange: 'transform' }}
           transition={layoutTransition}
         >
-          {/* Shared elements: travel with the surface */}
-          <MDiv layoutId={`title-${project.id}`} layout className="text-2xl font-glacial-bold leading-snug">
-            {project.title}
-            {project.demo && (
-              <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
-                Live
-              </span>
-            )}
-          </MDiv>
-          <MDiv layoutId={`tags-${project.id}`} layout className="mt-3 flex gap-1.5 flex-wrap">
-            {project.tags.map((t: string) => (
-              <span
-                key={t}
-                className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
-              >
-                {t}
-              </span>
-            ))}
-          </MDiv>
-
-          {/* Body: cross-fades in after the morph */}
+          {/* Everything cross-fades in once the surface lands — no text flight */}
           <MDiv
-            className="mt-4 flex flex-col gap-4"
+            className="flex flex-col gap-4"
             initial="hidden"
             animate="visible"
             exit="hidden"
             variants={bodyList}
           >
+            <MDiv variants={bodyItem} className="text-2xl font-glacial-bold leading-snug">
+              {project.title}
+              {project.demo && (
+                <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
+                  Live
+                </span>
+              )}
+            </MDiv>
+            <MDiv variants={bodyItem} className="flex gap-1.5 flex-wrap">
+              {project.tags.map((t: string) => (
+                <span
+                  key={t}
+                  className="text-[11px] px-2 py-0.5 rounded-full bg-brand-red/[0.07] text-brand-black/80 border border-brand-red/15"
+                >
+                  {t}
+                </span>
+              ))}
+            </MDiv>
             <MDiv variants={bodyItem} className="text-sm text-black/75 leading-relaxed">
               {project.description}
             </MDiv>

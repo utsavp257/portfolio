@@ -18,9 +18,9 @@ import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
  * scrolling don't mix.
  */
 const PIN_TOP = 88; // px below the viewport top for the first card
-const EDGE = 52; // px of title strip each buried card keeps visible
-const ARRIVAL_VH = 36; // scroll runway between card arrivals
-const DWELL_VH = 30; // how long the finished deck holds before releasing
+const EDGE = 26; // px of card edge each buried card keeps visible
+const ARRIVAL_VH = 44; // scroll runway between card arrivals
+const DWELL_VH = 34; // how long the finished deck holds before releasing
 
 function StackedCard({
   index,

@@ -17,11 +17,12 @@ export default function ProjectCard({
     React.HTMLAttributes<HTMLDivElement> & MotionProps
   >;
 
+  // Springy gestures, but a no-overshoot tween for the expand/collapse morph
+  // so text never bounces.
   const layoutTransition = {
-    type: 'spring',
-    stiffness: 250,
-    damping: 30,
-    mass: 0.8,
+    y: { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 },
+    scale: { type: 'spring', stiffness: 250, damping: 30, mass: 0.8 },
+    layout: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
   };
 
   return (
@@ -47,7 +48,7 @@ export default function ProjectCard({
     >
       <div className="absolute inset-0 rounded-2xl p-6 bg-white border border-black/10 shadow-soft group-hover:shadow-lift group-hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 flex flex-col font-glacial">
         {/* Title — shared element, morphs into the panel heading */}
-        <MDiv layoutId={`title-${project.id}`} layout className="text-lg font-glacial-bold leading-snug">
+        <MDiv layout className="text-lg font-glacial-bold leading-snug">
           {project.title}
           {project.demo && (
             <span className="ml-2 align-middle text-[10px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-red text-white">
@@ -57,7 +58,7 @@ export default function ProjectCard({
         </MDiv>
 
         {/* Tags — shared element, morphs in tandem */}
-        <MDiv layoutId={`tags-${project.id}`} layout className="mt-3 flex gap-1.5 flex-wrap">
+        <MDiv layout className="mt-3 flex gap-1.5 flex-wrap">
           {project.tags.map((t: string) => (
             <span
               key={t}
