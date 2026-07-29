@@ -79,19 +79,32 @@ export default function LandingIntro({ onFinish }: Props) {
         return isFinite(size) && size > 0 ? size : 0;
       });
 
-      lineRefs.forEach((ref, idx) => {
+      const fitted = lineRefs.map((ref, idx) => {
         const el = ref.current;
-        if (!el) return;
+        if (!el) return 0;
         const baseSize = baseFontSizesRef.current?.[idx] ?? 0;
         // Measure width at base size
         const fullWidth = el.scrollWidth;
         if (available > 0 && fullWidth > 0 && baseSize > 0) {
           const ratio = available / fullWidth;
-          const newSize = ratio < 1 ? baseSize * ratio * 0.98 : baseSize;
-          // inline !important — the stylesheet sizes these with !important, and
-          // a plain inline style loses that fight
-          el.style.setProperty('font-size', newSize + 'px', 'important');
+          return ratio < 1 ? baseSize * ratio * 0.98 : baseSize;
         }
+        return 0;
+      });
+
+      // On phones the width formula rules, so short lines ("to my") would fit
+      // at a larger size than long ones. Normalize all lines to the smallest
+      // fitted size for a uniform look; desktop keeps the designed per-line sizes.
+      const phone = window.innerWidth < 768;
+      const uniform = Math.min(...fitted.filter((s) => s > 0));
+
+      lineRefs.forEach((ref, idx) => {
+        const el = ref.current;
+        const size = phone ? uniform : fitted[idx];
+        if (!el || !size || !isFinite(size)) return;
+        // inline !important — the stylesheet sizes these with !important, and
+        // a plain inline style loses that fight
+        el.style.setProperty('font-size', size + 'px', 'important');
       });
     }
 
