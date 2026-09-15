@@ -10,14 +10,19 @@ import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
  * Geometry is computed from *measured* card heights:
  * - each card gets an absolutely-positioned lane; lane bottoms are set so
  *   every card unpins at the same scroll position and the deck exits intact
- * - buried cards CLIP their height to h_front + EDGE·depth, so the assembled
- *   deck's bottoms align even when card heights differ wildly (phones) —
- *   on uniform-height desktops the clip is inert
+ * - the deck presents ONE baseline card height (its shortest card). Any card
+ *   taller than that clips down to the baseline once something sits on top of
+ *   it, so an over-long card can't hang below the deck. The clip is purely
+ *   visual — the content stays in the DOM and renders in full whenever the
+ *   card is the front one.
  */
 const PIN_TOP = 88; // px below the viewport top for the first card
 const EDGE = 26; // px of card edge each buried card keeps visible
 const ARRIVAL_VH = 58; // scroll runway between card arrivals
 const DWELL_VH = 34; // how long the finished deck holds before releasing
+// Floor for the baseline: a buried card must still reach the next card's top
+// (EDGE) with room for the 16px corner radius, even after the depth scale.
+const DECK_MIN_H = 120;
 
 function StackedCard({
   index,
@@ -25,6 +30,10 @@ function StackedCard({
   progress,
   fullH,
   effH,
+  coverTop,
+  coverLane,
+  vh,
+  scrollRange,
   measureRef,
   children,
 }: {
@@ -33,6 +42,10 @@ function StackedCard({
   progress: MotionValue<number>;
   fullH?: number;
   effH?: number;
+  coverTop?: number; // viewport top the covering card settles at
+  coverLane?: number; // covering card's lane offset from the deck top, px
+  vh?: number;
+  scrollRange?: number; // px of scroll the progress 0..1 spans
   measureRef: (el: HTMLDivElement | null) => void;
   children: React.ReactNode;
 }) {
@@ -40,12 +53,21 @@ function StackedCard({
   const start = (index + 1) / total;
   const buriedScale = 1 - (total - 1 - index) * 0.03;
   const scale = useTransform(progress, [start, 1], [1, buriedScale]);
-  const clipEnd = Math.min(start + 0.12, 1);
-  const height = useTransform(
-    progress,
-    [start, clipEnd],
-    [fullH ?? 0, effH ?? 0],
-  );
+  // Follow the covering card down instead of guessing a scroll window: this
+  // card may shrink only as far as that card's top edge, so the trim is always
+  // hidden behind it — never a cut edge with bare background under it, and
+  // never a tail hanging below the deck.
+  const pinSelf = PIN_TOP + index * EDGE;
+  const height = useTransform(progress, (p) => {
+    if (fullH == null || effH == null) return fullH ?? 0;
+    if (coverTop == null || coverLane == null || vh == null || scrollRange == null) {
+      return fullH;
+    }
+    const coverNow = Math.max(coverTop, coverLane + vh / 2 - p * scrollRange);
+    // divide by the deepest scale so the depth shrink can't lift the edge clear
+    const needed = (coverNow - pinSelf) / buriedScale;
+    return Math.min(fullH, Math.max(effH, needed));
+  });
   const clipped = fullH != null && effH != null && effH < fullH;
 
   return (
@@ -99,21 +121,28 @@ export default function CardStack({ children }: { children: React.ReactNode }) {
     };
   }, [n]);
 
-  // Lane geometry. Buried card i clips to (front height + EDGE·depth) so the
-  // assembled deck's bottoms align; lane bottoms equalize unpin thresholds.
+  // Lane geometry. Every card that gets buried trims to one baseline height, so
+  // no card outruns the deck; lane bottoms equalize unpin thresholds.
   const pin = (i: number) => PIN_TOP + i * EDGE;
   let bottoms: number[] = items.map(() => 0);
   let effHeights: (number | undefined)[] = items.map(() => undefined);
+  let coverLanes: number[] = items.map(() => 0);
+  let scrollRange: number | undefined;
   let containerH: number | undefined;
   if (metrics) {
-    const hLast = metrics.heights[n - 1];
+    const base = Math.max(DECK_MIN_H, Math.min(...metrics.heights));
+    // The last card is never covered, so it always keeps its natural height.
     effHeights = metrics.heights.map((h, i) =>
-      Math.min(h, hLast + EDGE * (n - 1 - i)),
+      i === n - 1 ? h : Math.min(h, base),
     );
     const reach = effHeights.map((h, i) => pin(i) + (h as number));
     const maxReach = Math.max(...reach);
     bottoms = reach.map((r) => maxReach - r);
     containerH = (((n - 1) * ARRIVAL_VH + DWELL_VH) / 100) * metrics.vh + maxReach;
+    // useScroll runs 'start center' -> 'end end', so progress spans this much
+    // scroll; a card's lane sits ARRIVAL_VH below the one before it.
+    scrollRange = containerH - metrics.vh / 2;
+    coverLanes = items.map((_, i) => ((i + 1) * ARRIVAL_VH / 100) * metrics.vh);
   }
 
   return (
@@ -141,6 +170,10 @@ export default function CardStack({ children }: { children: React.ReactNode }) {
               progress={scrollYProgress}
               fullH={metrics?.heights[i]}
               effH={effHeights[i] as number | undefined}
+              coverTop={pin(i + 1)}
+              coverLane={metrics ? coverLanes[i] : undefined}
+              vh={metrics?.vh}
+              scrollRange={scrollRange}
               measureRef={(el) => {
                 cardRefs.current[i] = el;
               }}
