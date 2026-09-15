@@ -114,7 +114,8 @@ export default function Page() {
                   </p>
                   <MDiv initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.5 }}>
                   <p className="mt-4 text-lg text-black/70 max-w-prose font-glacial">
-                    Currently an MS in Data Science &amp; Quantitative Economics at Fordham, previously CS at IIT Palakkad.
+                    Currently an MS in Data Science &amp; Quantitative Economics at Fordham and a founding-team
+                    software engineer intern at FinOptiv; previously CS at IIT Palakkad.
                     Tap the dot grid and move around to play it — it&apos;s a little synth (left/right changes the note, near/far changes the tone).
                     It&apos;s polyphonic: use up to 5 fingers for chords on mobile, or right-click to hold notes on desktop.
                     Keep scrolling to see more.
@@ -161,7 +162,7 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 200, damping: 10, mass: 0.8 }}
                 >
                   <h3 className="font-glacial-bold">Bachelor of Technology, Computer Science - IIT Palakkad</h3>
-                  <p className="text-sm text-black/70">Jul 2021 – May 2025 • CGPA: <RollingNumber value="8.77" /></p>
+                  <p className="text-sm text-black/70">Jul 2021 – May 2025 • CGPA: <RollingNumber value="8.77" />/10 (3.51/4.0)</p>
                   <p className="mt-3 text-black/80">Relevant coursework: Data Structures and Algorithms, Artificial Intelligence, Design and Analysis of Algorithms, Natural Language
                   Processing, Cryptography, Big Data Lab, Computational Methods and Applications</p>
                 </MDiv>
@@ -173,8 +174,8 @@ export default function Page() {
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
                   <h3 className="font-glacial-bold">Master of Science, Data Science and Quant Economics - Fordham University</h3>
-                  <p className="text-sm text-black/70">Aug 2025 – May 2027 • GPA: <RollingNumber value="4.0" /></p>
-                  <p className="mt-3 text-black/80">Relevant coursework: Financial Econometrics, Microeconomics, Macroeconomics, Data Mining, Big Data</p>
+                  <p className="text-sm text-black/70">Aug 2025 – May 2027 (expected) • GPA: <RollingNumber value="4.0" />/4.0</p>
+                  <p className="mt-3 text-black/80">Relevant coursework: Financial Econometrics, Microeconomics, Macroeconomics, Data Mining, Big Data, NLP</p>
                 </MDiv>
               </MDiv>
             </SectionWrapper>
@@ -184,12 +185,24 @@ export default function Page() {
               <div className="max-w-6xl w-full px-6">
               <CardStack>
                 <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
-                  <h3 className="font-glacial-bold">Software Developer Intern — Stealth AI Startup, New York</h3>
-                  <p className="text-sm text-black/70 mt-2">May 2026 – Present</p>
+                  <h3 className="font-glacial-bold">Software Engineer Intern, Founding Team — FinOptiv, New York</h3>
+                  <p className="text-sm text-black/70 mt-2">Jun 2026 – Present</p>
+                  <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
+                    <li>Architected the agent output contract so models never emit numbers — strict schemas with no numeric fields, every dollar and duration copied from deterministic calculators. Surfaced two live defects where model-authored figures reached users, including a mislabeled interest field overstating borrower cost by 148× — $1.77M of interest rendered for a plan where the user spends $12,000.</li>
+                    <li>Shipped a versioned Prompt Registry end to end — prompt, version, dataset and run schemas, a canonical serializer, an eval runner gating publish against a threshold, admin CRUD and a 90-day retention job — so prompts version, evaluate, publish and roll back without an application deploy.</li>
+                    <li>Replaced the SSH-based deploy with GitHub OIDC and AWS SSM (no long-lived SSH key in CI, no public SSH port), cut the release artifact from 588 MB to 75 MB, and gated the pipeline with a post-deploy health check written against a real outage that had deployed green.</li>
+                    <li>Sole-authored the staging environment and its runbooks: dedicated EC2, isolated Postgres with scram-sha-256, nginx serving the SPA and proxying the API, and separate JWT, sandbox-payment and LLM credentials so staging never touches production data.</li>
+                    <li>Re-platformed the frontend onto a Tailwind + shadcn design system across four staged phases — swipe-card matching UI, scenario-analysis calculator, and a stale-build defence that later became load-bearing for deploy verification.</li>
+                    <li>Remediated the inherited security baseline (committed secrets, a leaked SSH private key, five unauthenticated paid-LLM endpoints, hardcoded admin credentials); authored 43 of the repo’s 111 architecture decision records and led 68 of 232 issues.</li>
+                  </ul>
+                </div>
+                <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
+                  <h3 className="font-glacial-bold">Software Developer Intern — AmyConnects, New York</h3>
+                  <p className="text-sm text-black/70 mt-2">May 2026 – Jul 2026</p>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
                     <li>Architected and built the platform layer for an AI-powered operational cognition system — FastAPI, async SQLModel, PostgreSQL/Neon, LangGraph, Inngest and GCP Cloud Run — with 10+ AI workflows and production services.</li>
                     <li>Designed the team&apos;s primary developer platform: an LLM-assisted operator CLI, automated OpenAPI→TypeScript codegen, real-time SSE event pipelines, CI contract validation, secret management, monitoring and production hardening.</li>
-                    <li>Integrated 15+ external services (Google OAuth, Google Meet, Twilio, WhatsApp, Yelp AI, Resy, Merge.dev, Xero, NetSuite) behind authenticated real-time frontends serving 100+ users and ~500 daily notifications.</li>
+                    <li>Integrated 15+ external services (Google OAuth, Google Meet, Twilio, WhatsApp, Yelp AI, Resy, Merge.dev, Xero, NetSuite) behind authenticated real-time frontends serving 100+ users and up to 500 daily notifications.</li>
                   </ul>
                 </div>
                 <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
@@ -211,8 +224,9 @@ export default function Page() {
                 <div className="rounded-2xl p-6 bg-white border border-black/10 shadow-lift font-glacial md:min-h-[21rem]">
                   <h3 className="font-glacial-bold">Beyond Work</h3>
                   <ul className="list-disc ml-5 mt-3 space-y-2 text-sm text-black/80">
-                    <li>🏆 1st Place, GDG NYC Build with AI Hackathon — built an AI system to diagnose trees with potential illnesses.</li>
-                    <li>Volunteered at Google Developer Group (GDG) NYC DevFest and Peace By Design: AI and Tech event.</li>
+                    <li>🏆 1st Place, GDG NYC Build with AI Hackathon — built an AI system to detect tree diseases.</li>
+                    <li>📄 Paper accepted at EMNLP 2026 on bias in vision-language model alternative text.</li>
+                    <li>Volunteer at GDG NYC and the NYC Web Performance Meetup since 2025 — logistics, AV setup and podcast production for community technical talks and workshops.</li>
                     <li>Led a crew of cameramen for my college fest and its various events, as well as making promo movies with a team of editors.</li>
                   </ul>
                 </div>
@@ -247,8 +261,8 @@ export default function Page() {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h4 className="font-glacial-bold">Frameworks & Tools</h4>
-                  <p className="text-sm mt-2">Next.js, React, Node.js, Express.js, FastAPI, Flask, Django, .NET, Flutter, Tailwind CSS, Prisma, PostgreSQL, MongoDB, Docker, GCP, Tableau</p>
+                  <h4 className="font-glacial-bold">Frameworks &amp; Tools</h4>
+                  <p className="text-sm mt-2">Next.js, React, Node.js, Express, FastAPI, Flask, Django, .NET, Flutter, Tailwind CSS, shadcn/ui, Prisma, PostgreSQL, MongoDB, Docker, Tableau</p>
                 </MDiv>
                 <MDiv 
                   variants={item}
@@ -257,14 +271,41 @@ export default function Page() {
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
                 >
-                  <h4 className="font-glacial-bold">Things I&apos;m good at</h4>
-                  <p className="text-sm mt-2">Machine Learning, NLP, LLMs &amp; agent workflows (PyTorch, TensorFlow, LangChain, LangGraph, RAG, fine-tuning), quantitative modeling (GARCH, VaR, econometrics), data analytics, DSA, full-stack development</p>
+                  <h4 className="font-glacial-bold">AI &amp; ML</h4>
+                  <p className="text-sm mt-2">PyTorch, TensorFlow, LangChain, LangGraph, Hugging Face, Pinecone — agent workflows, RAG pipelines, fine-tuning (QLoRA/PEFT), NLP and evaluation</p>
+                </MDiv>
+                <MDiv 
+                  variants={item}
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">AI-Assisted Development</h4>
+                  <p className="text-sm mt-2">LLM-assisted developer tooling, automated code review in CI, agent workflow design, prompt versioning &amp; evaluation gating, AI-driven build and deployment automation</p>
+                </MDiv>
+                <MDiv 
+                  variants={item}
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">Cloud, Platform &amp; Reliability</h4>
+                  <p className="text-sm mt-2">AWS (EC2, SSM, OIDC, S3), GCP Cloud Run, nginx, PostgreSQL, GitHub Actions, CI/CD, pm2, Sentry, Hadoop, Spark, Git — keyless OIDC deploys, staging/prod isolation, health gating, structured logging, secret management, dependency auditing, zod schema validation</p>
+                </MDiv>
+                <MDiv 
+                  variants={item}
+                  className="rounded-2xl p-6 bg-white border border-black/10 shadow-soft hover:shadow-lift hover:border-brand-red/25 transition-[box-shadow,border-color] duration-300 w-full max-w-3xl cursor-pointer font-glacial"
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: 'spring', stiffness: 250, damping: 30, mass: 0.8 }}
+                >
+                  <h4 className="font-glacial-bold">Quant &amp; Statistics</h4>
+                  <p className="text-sm mt-2">NumPy, pandas, statsmodels, arch, Numba — GARCH/GJR/EGARCH, maximum likelihood estimation, VaR &amp; Expected Shortfall backtesting, Kupiec &amp; Christoffersen coverage tests</p>
                 </MDiv>
               </MDiv>
             </SectionWrapper>
-
-            {/* Experience */}
-            
 
             {/* Projects */}
             <SectionDivider title="Projects" gap={60} multiplier={0.8} id="projects" />

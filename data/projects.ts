@@ -33,11 +33,11 @@ export const projects: Project[] = [
   {
     id: 'bias-detection',
     title: 'Bias Detection in AI Agents',
-    short: 'Measuring racial and gender bias in vision-language model outputs.',
+    short: 'Measuring racial and gender bias in vision-language model alt-text — accepted at EMNLP 2026.',
     description:
       'Evaluated racial and gender bias in AI-generated alternative text using 1,200 synthetic images and outputs from modern vision-language models. Applied NLP, sentiment and embedding-based evaluation metrics to measure disparities across demographic dimensions.',
-    tags: ['Responsible AI', 'VLMs', 'NLP', 'Evaluation'],
-    note: 'Paper under double-blind peer review; code and dataset to be released upon publication.',
+    tags: ['EMNLP 2026', 'Responsible AI', 'VLMs', 'NLP', 'Evaluation'],
+    note: 'Accepted at EMNLP 2026.',
   },
   {
     id: 'ner-low-resource',
